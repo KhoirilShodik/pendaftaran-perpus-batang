@@ -1,6 +1,6 @@
     'use client'
-import { useState } from 'react'
-
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 type RegistrationStatus = 'Menunggu' | 'Disetujui' | 'Ditolak'
 type Registration = {
   id: number
@@ -20,7 +20,9 @@ type Registration = {
   province: string
   sexId: number
   agamaId: number
-  maritalStatusId: number
+  maritalStatusId: string
+  pasFotoUrl?: string
+  fotoKtpUrl?: string
   motherMaidenName: string
   identityTypeId: number
   educationLevelId: number
@@ -34,20 +36,16 @@ type Registration = {
   rejectReason?: string
 }
 
-const DUMMY_DATA: Registration[] = [
-  { id:1, ticketNo:'REG-2026-11111', fullname:'Siti Rahayu', identityNo:'3325110101980001', noHp:'081234567890', email:'siti@gmail.com', placeOfBirth:'Batang', dateOfBirth:'1998-01-01', address:'Jl. Merdeka No.1', kecamatan:'Batang', kelurahan:'Kauman', rt:'001', rw:'002', city:'Batang', province:'Jawa Tengah', sexId:2, agamaId:1, maritalStatusId:1, motherMaidenName:'Sumiati', identityTypeId:1, educationLevelId:5, jobId:3, institutionName:'', namaDarurat:'Budi', telpDarurat:'082111111111', statusHubunganDarurat:'Orang Tua', registerDate:'2026-05-01', status:'Menunggu' },
-  { id:2, ticketNo:'REG-2026-22222', fullname:'Budi Santoso', identityNo:'3325110202850002', noHp:'082345678901', email:'budi@gmail.com', placeOfBirth:'Pekalongan', dateOfBirth:'1985-02-02', address:'Jl. Pemuda No.5', kecamatan:'Warungasem', kelurahan:'Warungasem', rt:'002', rw:'003', city:'Batang', province:'Jawa Tengah', sexId:1, agamaId:1, maritalStatusId:2, motherMaidenName:'Sriningsih', identityTypeId:1, educationLevelId:4, jobId:1, institutionName:'Pemkab Batang', namaDarurat:'Ani', telpDarurat:'083222222222', statusHubunganDarurat:'Suami-Istri', registerDate:'2026-05-02', status:'Disetujui' },
-  { id:3, ticketNo:'REG-2026-33333', fullname:'Dewi Lestari', identityNo:'3325110303920003', noHp:'083456789012', email:'dewi@gmail.com', placeOfBirth:'Kendal', dateOfBirth:'1992-03-03', address:'Jl. Sudirman No.10', kecamatan:'Subah', kelurahan:'Subah', rt:'003', rw:'004', city:'Batang', province:'Jawa Tengah', sexId:2, agamaId:1, maritalStatusId:1, motherMaidenName:'Muryati', identityTypeId:1, educationLevelId:5, jobId:6, institutionName:'UNDIP', namaDarurat:'Hasan', telpDarurat:'084333333333', statusHubunganDarurat:'Orang Tua', registerDate:'2026-05-03', status:'Menunggu' },
-  { id:4, ticketNo:'REG-2026-44444', fullname:'Ahmad Fauzi', identityNo:'3325110404750004', noHp:'084567890123', email:'ahmad@gmail.com', placeOfBirth:'Batang', dateOfBirth:'1975-04-04', address:'Jl. Diponegoro No.15', kecamatan:'Limpung', kelurahan:'Limpung', rt:'004', rw:'005', city:'Batang', province:'Jawa Tengah', sexId:1, agamaId:1, maritalStatusId:2, motherMaidenName:'Fatimah', identityTypeId:1, educationLevelId:3, jobId:4, institutionName:'', namaDarurat:'Rina', telpDarurat:'085444444444', statusHubunganDarurat:'Suami-Istri', registerDate:'2026-05-04', status:'Disetujui' },
-  { id:5, ticketNo:'REG-2026-55555', fullname:'Nurul Hidayah', identityNo:'3325110505000005', noHp:'085678901234', email:'nurul@gmail.com', placeOfBirth:'Brebes', dateOfBirth:'2000-05-05', address:'Jl. Ahmad Yani No.20', kecamatan:'Gringsing', kelurahan:'Gringsing', rt:'005', rw:'006', city:'Batang', province:'Jawa Tengah', sexId:2, agamaId:1, maritalStatusId:1, motherMaidenName:'Khotimah', identityTypeId:1, educationLevelId:3, jobId:5, institutionName:'SMA N 1 Batang', namaDarurat:'Yusuf', telpDarurat:'086555555555', statusHubunganDarurat:'Orang Tua', registerDate:'2026-05-05', status:'Ditolak', rejectReason:'Foto KTP tidak jelas' },
-]
+
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loginUser, setLoginUser] = useState('')
   const [loginPass, setLoginPass] = useState('')
   const [loginError, setLoginError] = useState('')
-  const [registrations, setRegistrations] = useState<Registration[]>(DUMMY_DATA)
+  const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [fetchError, setFetchError] = useState('')
   const [activeFilter, setActiveFilter] = useState<'Semua'|RegistrationStatus>('Semua')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedReg, setSelectedReg] = useState<Registration|null>(null)
@@ -55,6 +53,67 @@ export default function AdminDashboard() {
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [toast, setToast] = useState('')
+
+  const fetchRegistrations = async () => {
+    setIsLoadingData(true)
+    try {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mapped = (data || []).map((r: any) => ({
+        id: r.id,
+        ticketNo: r.ticket_no,
+        fullname: r.fullname,
+        identityNo: r.identity_no || '-',
+        noHp: r.no_hp || '-',
+        email: r.email || '-',
+        placeOfBirth: r.place_of_birth || '-',
+        dateOfBirth: r.date_of_birth || '-',
+        address: r.address || '-',
+        kecamatan: r.kecamatan || '-',
+        kelurahan: r.kelurahan || '-',
+        rt: r.rt || '-',
+        rw: r.rw || '-',
+        city: r.city || 'Batang',
+        province: r.province || 'Jawa Tengah',
+        sexId: r.sex_id || 0,
+        agamaId: r.agama_id || 0,
+        maritalStatusId: r.marital_status_id || '-',
+        motherMaidenName: r.mother_maiden_name || '-',
+        identityTypeId: r.identity_type_id || 0,
+        educationLevelId: r.education_level_id || 0,
+        jobId: r.job_id || 0,
+        institutionName: r.institution_name || '',
+        namaDarurat: r.nama_darurat || '-',
+        telpDarurat: r.telp_darurat || '-',
+        statusHubunganDarurat: r.status_hubungan_darurat || '-',
+        pasFotoUrl: r.pas_foto_url || '',
+        fotoKtpUrl: r.foto_ktp_url || '',
+        registerDate: r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID') : '-',
+        status: (r.status as RegistrationStatus) || 'Menunggu',
+        rejectReason: r.reject_reason || '',
+      }))
+
+      setRegistrations(mapped)
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setFetchError('Gagal memuat data. Silakan refresh halaman.')
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchRegistrations()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn])
 
   const handleLogin = () => {
     if (loginUser === 'admin.perpus' && loginPass === 'Dispuspa@2026') {
@@ -70,20 +129,38 @@ export default function AdminDashboard() {
     setTimeout(() => setToast(''), 3000)
   }
 
-  const handleApprove = (id: number) => {
-    if(!confirm("Setujui pendaftaran ini dan kirim data ke INLISLite?")) return
-    setRegistrations(prev => prev.map(r => r.id === id ? {...r, status:'Disetujui'} : r))
-    setShowModal(false)
-    showToast('✅ Data berhasil dikirim ke sistem INLISLite!')
+  const handleApprove = async (id: number) => {
+    if (!confirm('Setujui pendaftaran ini dan kirim data ke INLISLite?')) return
+    const { error } = await supabase
+      .from('registrations')
+      .update({ status: 'Disetujui', approved_at: new Date().toISOString(), approved_by: 'admin.perpus' })
+      .eq('id', id)
+
+    if (!error) {
+      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Disetujui' } : r))
+      setShowModal(false)
+      showToast('✅ Data berhasil dikirim ke sistem INLISLite!')
+    } else {
+      showToast('❌ Gagal mengupdate status. Coba lagi.')
+    }
   }
 
-  const handleReject = (id: number) => {
+  const handleReject = async (id: number) => {
     if (!rejectReason.trim()) return
-    setRegistrations(prev => prev.map(r => r.id === id ? {...r, status:'Ditolak', rejectReason} : r))
-    setShowModal(false)
-    setShowRejectForm(false)
-    setRejectReason('')
-    showToast('❌ Pendaftaran telah ditolak.')
+    const { error } = await supabase
+      .from('registrations')
+      .update({ status: 'Ditolak', reject_reason: rejectReason })
+      .eq('id', id)
+
+    if (!error) {
+      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Ditolak', rejectReason } : r))
+      setShowModal(false)
+      setShowRejectForm(false)
+      setRejectReason('')
+      showToast('❌ Pendaftaran telah ditolak.')
+    } else {
+      showToast('❌ Gagal mengupdate status. Coba lagi.')
+    }
   }
 
   const filtered = registrations.filter(r => {
@@ -129,7 +206,12 @@ export default function AdminDashboard() {
       <header className="text-white py-6 px-6 shadow-md" style={{backgroundColor:'#1e3a5f'}}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold tracking-widest">DASHBOARD ADMIN — PENDAFTARAN ANGGOTA</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold tracking-widest">DASHBOARD ADMIN — PENDAFTARAN ANGGOTA</h1>
+              <button onClick={fetchRegistrations} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition ml-2">
+                🔄 Refresh
+              </button>
+            </div>
             <p className="text-sm opacity-80" style={{color:'#c8a84b'}}>Dinas Perpustakaan dan Kearsipan Kabupaten Batang</p>
           </div>
           <button onClick={() => setIsLoggedIn(false)} className="text-xs bg-red-700 hover:bg-red-800 px-4 py-2 rounded font-bold transition-colors">LOGOUT</button>
@@ -137,6 +219,20 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 mt-8">
+        {isLoadingData && (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="w-10 h-10 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-gray-500 text-sm">Memuat data pendaftaran...</p>
+            </div>
+          </div>
+        )}
+        {fetchError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-red-600 text-sm flex items-center gap-2">
+            ⚠️ {fetchError}
+            <button onClick={fetchRegistrations} className="ml-auto text-xs underline">Coba lagi</button>
+          </div>
+        )}
         {/* STATS CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">

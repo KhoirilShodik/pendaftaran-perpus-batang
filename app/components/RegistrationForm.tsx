@@ -1,5 +1,5 @@
 "use client";
-
+import { supabase } from '@/lib/supabase'
 import React, { useState, ChangeEvent, FormEvent } from "react";
 
 interface FormData {
@@ -191,20 +191,84 @@ export default function RegistrationForm() {
     return true;
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+  const handleSubmit = async (e?: FormEvent) => {
+    console.log('handleSubmit called', formData)
+    e?.preventDefault()
 
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSuccess(true);
-      const randomId = Math.floor(10000 + Math.random() * 90000);
-      setTicketNumber(`REG-2026-${randomId}`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 2000);
-  };
+    if (!validate()) return
+
+    setIsLoading(true)
+
+    try {
+      const ticketNo = `REG-2026-${Math.floor(10000 + Math.random() * 90000)}`
+
+      // Upload pas foto
+      let pasFotoUrl = ''
+      if (pasFoto) {
+        const ext = pasFoto.name.split('.').pop()
+        const path = `pas-foto/${ticketNo}.${ext}`
+        const { error: uploadError } = await supabase.storage
+          .from('dokumen-anggota')
+          .upload(path, pasFoto)
+        if (!uploadError) pasFotoUrl = path
+      }
+
+      // Upload foto KTP
+      let fotoKtpUrl = ''
+      if (fotoKtp) {
+        const ext = fotoKtp.name.split('.').pop()
+        const path = `foto-ktp/${ticketNo}.${ext}`
+        const { error: uploadError } = await supabase.storage
+          .from('dokumen-anggota')
+          .upload(path, fotoKtp)
+        if (!uploadError) fotoKtpUrl = path
+      }
+
+      // Simpan data ke Supabase
+      const { error } = await supabase.from('registrations').insert({
+        ticket_no: ticketNo,
+        fullname: formData.fullname,
+        place_of_birth: formData.placeOfBirth,
+        date_of_birth: formData.dateOfBirth,
+        address: formData.address,
+        kecamatan: formData.kecamatan,
+        kelurahan: formData.kelurahan,
+        rt: formData.rt,
+        rw: formData.rw,
+        city: formData.city,
+        province: formData.province,
+        identity_type_id: parseInt(formData.identityTypeId),
+        identity_no: formData.identityNo,
+        education_level_id: parseInt(formData.educationLevelId),
+        sex_id: parseInt(formData.sexId),
+        marital_status_id: formData.maritalStatusId,
+        job_id: parseInt(formData.jobId),
+        institution_name: formData.institutionName,
+        mother_maiden_name: formData.motherMaidenName,
+        email: formData.email,
+        no_hp: formData.noHp,
+        phone: formData.phone,
+        agama_id: parseInt(formData.agamaId),
+        nama_darurat: formData.namaDarurat,
+        telp_darurat: formData.telpDarurat,
+        status_hubungan_darurat: formData.statusHubunganDarurat,
+        pas_foto_url: pasFotoUrl,
+        foto_ktp_url: fotoKtpUrl,
+        status: 'Menunggu'
+      })
+
+      if (error) throw error
+
+      setTicketNumber(ticketNo)
+      setIsSuccess(true)
+
+    } catch (err) {
+      console.error('Submit error:', err)
+      alert('Terjadi kesalahan saat mengirim data. Silakan coba lagi.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   if (isSuccess) {
     return (
@@ -243,7 +307,7 @@ export default function RegistrationForm() {
   const labelClass = "block text-sm font-semibold text-[#1e3a5f]";
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-12">
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="max-w-4xl mx-auto space-y-8 pb-12">
       
       {/* SECTION 1: DATA PRIBADI */}
       <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-8">
