@@ -19,41 +19,44 @@ export default function Home() {
 
       {/* ── HEADER ── */}
       <header className="bg-[#1e3a5f] shadow-xl">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center gap-4">
-          {/* Logo placeholder – book icon */}
-          <div className="flex-shrink-0 w-16 h-16 bg-white/10 rounded-full flex items-center justify-center border-2 border-[#c8a84b]">
-            <svg
-              className="w-9 h-9 text-[#c8a84b]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-              />
-            </svg>
-          </div>
+  {/* Menggunakan items-center & text-center untuk memastikan semua konten di tengah */}
+  <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col items-center text-center gap-4">
+    
+    {/* Ikon: Menggunakan shrink-0 agar tidak gepeng di layar sempit */}
+    <div className="flex-shrink-0 w-16 h-16 bg-white/10 rounded-full flex items-center justify-center border-2 border-[#c8a84b]">
+      <svg
+        className="w-9 h-9 text-[#c8a84b]"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+        />
+      </svg>
+    </div>
 
-          <div className="text-center sm:text-left">
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-wide leading-tight">
-              PENDAFTARAN ANGGOTA PERPUSTAKAAN
-            </h1>
-            <p className="text-[#c8a84b] text-sm sm:text-base font-medium mt-0.5">
-              Dinas Perpustakaan dan Kearsipan Kabupaten Batang
-            </p>
-            <p className="text-white/60 text-xs mt-1">
-              Isi formulir di bawah ini dengan lengkap dan benar
-            </p>
-          </div>
-        </div>
+    {/* Teks: Diatur center dengan spacing yang lebih pas */}
+    <div className="space-y-1">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wide leading-tight uppercase">
+        Pendaftaran Anggota <br className="sm:hidden" /> Perpustakaan
+      </h1>
+      <p className="text-[#c8a84b] text-sm sm:text-base font-medium">
+        Dinas Perpustakaan dan Kearsipan Kabupaten Batang
+      </p>
+      <p className="text-white/60 text-[10px] sm:text-xs mt-1 uppercase tracking-widest">
+        Isi formulir di bawah ini dengan lengkap dan benar
+      </p>
+    </div>
+  </div>
 
-        {/* Decorative gold divider */}
-        <div className="h-1 bg-gradient-to-r from-[#c8a84b] via-yellow-300 to-[#c8a84b]" />
-      </header>
+  {/* Decorative gold divider */}
+  <div className="h-1 bg-gradient-to-r from-[#c8a84b] via-yellow-300 to-[#c8a84b]" />
+</header>
 
       {/* ── INFO BANNER ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6">

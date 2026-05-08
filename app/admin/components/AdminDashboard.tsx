@@ -1,6 +1,10 @@
     'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { LibraryCardPDF } from '@/app/components/LibraryCardPDF'
+import QRCode from 'qrcode'
+
 type RegistrationStatus = 'Menunggu' | 'Disetujui' | 'Ditolak'
 type Registration = {
   id: number
@@ -21,8 +25,8 @@ type Registration = {
   sexId: number
   agamaId: number
   maritalStatusId: string
-  pasFotoUrl?: string
-  fotoKtpUrl?: string
+  pas_foto_url?: string
+  foto_ktp_url?: string
   motherMaidenName: string
   identityTypeId: number
   educationLevelId: number
@@ -53,6 +57,28 @@ export default function AdminDashboard() {
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [toast, setToast] = useState('')
+  const [qrCodeData, setQrCodeData] = useState<string>('')
+
+
+
+  const generateQRCode = async (ticketNo: string) => {
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://pendaftaran-perpus-batang.vercel.app'
+      const url = `${baseUrl}/cek-status?tiket=${ticketNo}`
+      const qrData = await QRCode.toDataURL(url, {
+        margin: 1,
+        width: 150,
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#1e3a5f',
+          light: '#ffffff'
+        }
+      })
+      setQrCodeData(qrData)
+    } catch (err) {
+      console.error('Error generating QR code:', err)
+    }
+  }
 
   const fetchRegistrations = async () => {
     setIsLoadingData(true)
@@ -92,8 +118,8 @@ export default function AdminDashboard() {
         namaDarurat: r.nama_darurat || '-',
         telpDarurat: r.telp_darurat || '-',
         statusHubunganDarurat: r.status_hubungan_darurat || '-',
-        pasFotoUrl: r.pas_foto_url || '',
-        fotoKtpUrl: r.foto_ktp_url || '',
+        pas_foto_url: r.pas_foto_url || '',
+        foto_ktp_url: r.foto_ktp_url || '',
         registerDate: r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID') : '-',
         status: (r.status as RegistrationStatus) || 'Menunggu',
         rejectReason: r.reject_reason || '',
@@ -114,6 +140,12 @@ export default function AdminDashboard() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn])
+
+  useEffect(() => {
+    if (selectedReg && selectedReg.status === 'Disetujui') {
+      generateQRCode(selectedReg.ticketNo)
+    }
+  }, [selectedReg])
 
   const handleLogin = () => {
     if (loginUser === 'admin.perpus' && loginPass === 'Dispuspa@2026') {
@@ -175,6 +207,22 @@ export default function AdminDashboard() {
     disetujui: registrations.filter(r=>r.status==='Disetujui').length, 
     ditolak: registrations.filter(r=>r.status==='Ditolak').length 
   }
+
+  // Ambil URL dari .env.local
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+const getImageUrl = (path: string, folder: 'pas-foto' | 'foto-ktp') => {
+  if (!path) return null;
+  
+  // Bersihkan path dari spasi yang tidak sengaja terinput
+  const cleanPath = path.trim();
+  
+  // Logika: Jika di database 'cleanPath' belum ada folder/ (garis miring), 
+  // kita tambahkan foldernya secara otomatis.
+  const finalPath = cleanPath.includes('/') ? cleanPath : `${folder}/${cleanPath}`;
+
+  return `${supabaseUrl}/storage/v1/object/public/dokumen-anggota/${finalPath}`;
+};
 
   if (!isLoggedIn) return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -394,15 +442,33 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <p className="text-[10px] font-bold text-gray-500 uppercase">Pas Foto</p>
-                      <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
-                        [ Image Placeholder: Pas Foto ]
-                      </div>
+                      {selectedReg.pas_foto_url ? (
+                        <img
+                          src={getImageUrl(selectedReg.pas_foto_url, 'pas-foto') || ''}
+                          alt="Pas Foto"
+                          className="w-full rounded-lg border border-gray-200 object-cover aspect-[3/4]"
+                          onError={(e) => { (e.target as HTMLImageElement).src = ''; }}
+                        />
+                      ) : (
+                        <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
+                          Foto tidak tersedia
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <p className="text-[10px] font-bold text-gray-500 uppercase">Foto KTP</p>
-                      <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
-                        [ Image Placeholder: Foto KTP ]
-                      </div>
+                      {selectedReg.foto_ktp_url ? (
+                        <img
+                          src={getImageUrl(selectedReg.foto_ktp_url, 'foto-ktp') || ''}
+                          alt="Foto KTP"
+                          className="w-full rounded-lg border border-gray-200 object-cover aspect-[3/4]"
+                          onError={(e) => { (e.target as HTMLImageElement).src = ''; }}
+                        />
+                      ) : (
+                        <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
+                          Foto tidak tersedia
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -455,6 +521,37 @@ export default function AdminDashboard() {
                       KONFIRMASI TOLAK
                     </button>
                   </div>
+                </div>
+              )}
+
+              {selectedReg.status === 'Disetujui' && (
+                <div className="mb-4">
+                  {qrCodeData ? (
+                    <PDFDownloadLink
+                      document={
+                        <LibraryCardPDF 
+                          registration={selectedReg}
+                          qrCodeUrl={qrCodeData}
+                          pasFotoPublicUrl={getImageUrl(selectedReg.pas_foto_url || '', 'pas-foto') || ''}
+                        />
+                      }
+                      fileName={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
+                    >
+                      {({ loading }) => (
+                        <button 
+                          disabled={loading}
+                          className="w-full py-3 bg-[#1e3a5f] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-800 transition-colors shadow-lg"
+                        >
+                          {loading ? 'MENYIAPKAN DOKUMEN...' : '📥 DOWNLOAD KARTU DIGITAL'}
+                        </button>
+                      )}
+                    </PDFDownloadLink>
+                  ) : (
+                    <div className="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                      GENERATING QR CODE...
+                    </div>
+                  )}
                 </div>
               )}
 
