@@ -259,6 +259,18 @@ export default function RegistrationForm() {
 
       if (error) throw error
 
+      // Trigger Email Notification (Asynchronous/Non-blocking)
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'WELCOME_CONFIRMATION',
+          email: formData.email,
+          fullname: formData.fullname,
+          ticketNo: ticketNo
+        })
+      }).catch(err => console.error('Email trigger error:', err))
+
       setTicketNumber(ticketNo)
       setIsSuccess(true)
 

@@ -142,10 +142,19 @@ export default function AdminDashboard() {
   }, [isLoggedIn])
 
   useEffect(() => {
-    if (selectedReg && selectedReg.status === 'Disetujui') {
-      generateQRCode(selectedReg.ticketNo)
-    }
-  }, [selectedReg])
+  if (selectedReg && selectedReg.status === 'Disetujui') {
+    // 1. Tentukan Base URL secara pintar
+    // Jika ada environment variable, pakai itu. Jika tidak, pakai origin saat ini.
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    
+    // 2. Gabungkan menjadi URL verifikasi
+    const verifyUrl = `${baseUrl}/cek-status?tiket=${selectedReg.ticketNo}`;
+    
+    QRCode.toDataURL(verifyUrl, { width: 300, margin: 2 })
+      .then(url => setQrCodeData(url))
+      .catch(err => console.error("QR Error:", err));
+  }
+}, [selectedReg]);
 
   const handleLogin = () => {
     if (loginUser === 'admin.perpus' && loginPass === 'Dispuspa@2026') {
@@ -169,6 +178,21 @@ export default function AdminDashboard() {
       .eq('id', id)
 
     if (!error) {
+      // Trigger Email Notification (STATUS_APPROVED)
+      const reg = registrations.find(r => r.id === id)
+      if (reg) {
+        fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'STATUS_APPROVED',
+            email: reg.email,
+            fullname: reg.fullname,
+            ticketNo: reg.ticketNo
+          })
+        }).catch(err => console.error('Email trigger error:', err))
+      }
+
       setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Disetujui' } : r))
       setShowModal(false)
       showToast('✅ Data berhasil dikirim ke sistem INLISLite!')
