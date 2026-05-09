@@ -171,34 +171,42 @@ export default function AdminDashboard() {
   }
 
   const handleApprove = async (id: number) => {
-    if (!confirm('Setujui pendaftaran ini dan kirim data ke INLISLite?')) return
+    const reg = registrations.find(r => r.id === id)
+    if (!reg) return
+
     const { error } = await supabase
       .from('registrations')
-      .update({ status: 'Disetujui', approved_at: new Date().toISOString(), approved_by: 'admin.perpus' })
+      .update({
+        status: 'Disetujui',
+        approved_at: new Date().toISOString(),
+        approved_by: 'admin.perpus'
+      })
       .eq('id', id)
 
-    if (!error) {
-      // Trigger Email Notification (STATUS_APPROVED)
-      const reg = registrations.find(r => r.id === id)
-      if (reg) {
-        fetch('/api/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'STATUS_APPROVED',
-            email: reg.email,
-            fullname: reg.fullname,
-            ticketNo: reg.ticketNo
-          })
-        }).catch(err => console.error('Email trigger error:', err))
-      }
-
-      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Disetujui' } : r))
-      setShowModal(false)
-      showToast('✅ Data berhasil dikirim ke sistem INLISLite!')
-    } else {
+    if (error) {
       showToast('❌ Gagal mengupdate status. Coba lagi.')
+      return
     }
+
+    // Update local state
+    setRegistrations(prev => prev.map(r =>
+      r.id === id ? { ...r, status: 'Disetujui' } : r
+    ))
+    setShowModal(false)
+
+    // Send approval email (non-blocking)
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'STATUS_APPROVED',
+        email: reg.email,
+        fullname: reg.fullname,
+        ticketNumber: reg.ticketNo
+      })
+    }).catch(err => console.error('Email approval error:', err))
+
+    showToast('✅ Pendaftaran disetujui! Email notifikasi dikirim ke anggota.')
   }
 
   const handleReject = async (id: number) => {
