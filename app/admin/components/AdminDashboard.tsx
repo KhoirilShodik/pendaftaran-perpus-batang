@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         type: 'STATUS_APPROVED',
         email: reg.email,
         fullname: reg.fullname,
-        ticketNumber: reg.ticket_no // GANTI DARI ticketNo KE ticket_no
+        ticketNumber: (reg as any).ticket_no // GANTI DARI ticketNo KE ticket_no
       })
     }).catch(err => console.error('Email approval error:', err))
 
