@@ -267,7 +267,7 @@ export default function RegistrationForm() {
           type: 'WELCOME_CONFIRMATION',
           email: formData.email,
           fullname: formData.fullname,
-          ticketNo: ticketNo
+          ticketNumber: ticketNo
         })
       }).catch(err => console.error('Email trigger error:', err))
 
