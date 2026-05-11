@@ -154,6 +154,12 @@ export default function AdminDashboard() {
     const reg = registrations.find(r => r.id === id)
     if (!reg) return
 
+    // Safety Check Email
+    if (reg.email === '-' || !reg.email.includes('@')) {
+      showToast('❌ Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
+      return
+    }
+
     const { error } = await supabase
       .from('registrations')
       .update({
@@ -229,6 +235,17 @@ export default function AdminDashboard() {
     return;
   }
 
+  // Safety Check Email
+  if (reg.email === '-' || !reg.email.includes('@')) {
+    showToast('❌ Email pendaftar tidak valid, tidak bisa mengirim notifikasi.');
+    // Walaupun email gagal, kita tetap update UI agar sinkron dengan DB
+    setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Ditolak', rejectReason: currentReason } : r));
+    setShowModal(false);
+    setShowRejectForm(false);
+    setRejectReason('');
+    return;
+  }
+
   // JIKA DATABASE BERHASIL, PAKSA KIRIM EMAIL
   console.log("Database OK, mengirim email ke:", reg.email); // LOG 3
 
@@ -249,7 +266,7 @@ export default function AdminDashboard() {
     console.log("Respon API Notify:", result); // LOG 4
 
     if (response.ok) {
-      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Ditolak', reject_reason: currentReason } : r));
+      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: 'Ditolak', rejectReason: currentReason } : r));
       setShowModal(false);
       setShowRejectForm(false);
       setRejectReason('');
@@ -560,8 +577,9 @@ const getImageUrl = (path: string, folder: 'pas-foto' | 'foto-ktp') => {
 
               {showRejectForm && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  <label className="block text-sm font-bold mb-2">Alasan Penolakan (Wajib diisi):</label>
+                  <label htmlFor="reject-textarea" className="block text-sm font-bold mb-2">Alasan Penolakan (Wajib diisi):</label>
                   <textarea 
+                    id="reject-textarea"
                     className="w-full border-2 border-red-100 rounded-xl p-4 text-sm focus:border-red-400 outline-none mb-4"
                     rows={3}
                     placeholder="Contoh: Foto KTP tidak terbaca jelas atau data tidak sesuai dokumen..."

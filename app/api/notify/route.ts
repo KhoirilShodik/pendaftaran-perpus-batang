@@ -13,6 +13,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields: email, fullname, or ticketNumber' }, { status: 400 });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+
     let subject = '';
     let html = '';
 
