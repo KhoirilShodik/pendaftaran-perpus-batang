@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { 
   RefreshCw, LogOut, ShieldAlert, KeyRound, 
-  Loader2, Save, X, BookOpen 
+  Loader2, Save, X, BookOpen, Eye, EyeOff 
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -43,6 +43,8 @@ export default function AdminDashboard() {
   const [showPassModal, setShowPassModal] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [isUpdatingPass, setIsUpdatingPass] = useState(false)
+  const [showLoginPass, setShowLoginPass] = useState(false)
+  const [showNewPass, setShowNewPass] = useState(false)
   
   const [activeFilter, setActiveFilter] = useState<'Semua'|RegistrationStatus>('Semua')
   const [searchQuery, setSearchQuery] = useState('')
@@ -223,14 +225,23 @@ export default function AdminDashboard() {
           </div>
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
-            <input 
-              type="password" 
-              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
-              value={loginPass} 
-              onChange={e=>setLoginPass(e.target.value)} 
-              onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
-              placeholder="••••••••"
-            />
+            <div className="relative group/pass">
+              <input 
+                type={showLoginPass ? "text" : "password"} 
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 pr-12 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
+                value={loginPass} 
+                onChange={e=>setLoginPass(e.target.value)} 
+                onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowLoginPass(!showLoginPass)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1e3a5f] transition-colors"
+              >
+                {showLoginPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button 
             onClick={handleLogin} 
@@ -354,13 +365,22 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password Baru</label>
-                <input 
-                  type="password" 
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
-                  value={newPassword} 
-                  onChange={e => setNewPassword(e.target.value)} 
-                  placeholder="Min. 6 karakter"
-                />
+                <div className="relative group/pass">
+                  <input 
+                    type={showNewPass ? "text" : "password"} 
+                    className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3 pr-12 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    placeholder="Min. 6 karakter"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(!showNewPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1e3a5f] transition-colors"
+                  >
+                    {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               <button 
                 onClick={handleUpdatePassword}
