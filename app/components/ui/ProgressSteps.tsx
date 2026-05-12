@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle2, Clock, XCircle, Circle } from 'lucide-react';
 
 export type StepState = 'pending' | 'active' | 'done' | 'rejected';
 
@@ -12,34 +13,42 @@ interface ProgressStepsProps {
 }
 
 export function ProgressSteps({ steps }: ProgressStepsProps) {
-  const icon = (s: StepState) => {
-    if (s === 'done') return '✅';
-    if (s === 'active') return '⏳';
-    if (s === 'rejected') return '❌';
-    return '⬜';
+  const Icon = ({ s }: { s: StepState }) => {
+    if (s === 'done') return <CheckCircle2 size={20} className="text-emerald-500" />;
+    if (s === 'active') return <Clock size={20} className="text-[#1e3a5f] animate-pulse" />;
+    if (s === 'rejected') return <XCircle size={20} className="text-rose-500" />;
+    return <Circle size={20} className="text-gray-200" />;
   };
 
   const labelColor = (s: StepState) => {
-    if (s === 'done') return 'text-green-700';
-    if (s === 'active') return 'text-yellow-700 font-bold';
-    if (s === 'rejected') return 'text-red-700 font-bold';
-    return 'text-gray-400';
+    if (s === 'done') return 'text-emerald-600 font-bold';
+    if (s === 'active') return 'text-[#1e3a5f] font-black';
+    if (s === 'rejected') return 'text-rose-600 font-bold';
+    return 'text-gray-300 font-medium';
   };
 
   return (
-    <div className="flex items-center gap-1 pt-2">
+    <div className="flex items-center gap-0 pt-4 px-2">
       {steps.map((step, i) => (
-        <div key={i} className="flex items-center flex-1">
-          <div className="flex flex-col items-center flex-1">
-            <span className="text-lg">{icon(step.state)}</span>
-            <span className={`text-[10px] text-center mt-1 leading-tight ${labelColor(step.state)}`}>
+        <React.Fragment key={i}>
+          <div className="flex flex-col items-center flex-1 space-y-3">
+            <div className={`p-2 rounded-xl transition-all duration-500 ${
+              step.state === 'active' ? 'bg-blue-50 shadow-inner' : 'bg-transparent'
+            }`}>
+              <Icon s={step.state} />
+            </div>
+            <span className={`text-[9px] uppercase tracking-[0.1em] text-center leading-tight transition-colors duration-500 ${labelColor(step.state)}`}>
               {step.label}
             </span>
           </div>
           {i < steps.length - 1 && (
-            <div className="h-px flex-1 bg-gray-200 mb-4 mx-1" />
+            <div className="flex-[0.5] h-[2px] bg-gray-100 -mt-8 relative overflow-hidden rounded-full">
+               <div className={`absolute inset-0 bg-[#1e3a5f] transition-all duration-1000 ${
+                 step.state === 'done' ? 'translate-x-0' : '-translate-x-full'
+               }`} />
+            </div>
           )}
-        </div>
+        </React.Fragment>
       ))}
     </div>
   );

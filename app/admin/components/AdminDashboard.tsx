@@ -2,8 +2,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { 
-  RefreshCw, LogOut, Lock, LayoutDashboard, ShieldAlert, 
-  KeyRound, Loader2, Save, X 
+  RefreshCw, LogOut, ShieldAlert, KeyRound, 
+  Loader2, Save, X, BookOpen 
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -115,6 +115,11 @@ export default function AdminDashboard() {
     setIsLoggedIn(false)
   }
 
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 3000)
+  }, [setToast])
+
   const handleUpdatePassword = async () => {
     if (newPassword.length < 6) {
       showToast('⚠️ Password minimal 6 karakter')
@@ -134,12 +139,6 @@ export default function AdminDashboard() {
       setIsUpdatingPass(false)
     }
   }
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg)
-    const timer = setTimeout(() => setToast(''), 3000)
-    return () => clearTimeout(timer)
-  }, [])
 
   const onApprove = async (reg: Registration) => {
     try {
@@ -186,7 +185,7 @@ export default function AdminDashboard() {
   if (isLoadingAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-900" size={48} />
+        <Loader2 className="animate-spin text-[#1e3a5f]" size={48} />
       </div>
     )
   }
@@ -195,11 +194,12 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
       <div className="bg-white rounded-3xl shadow-2xl shadow-blue-900/10 p-10 w-full max-w-md border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-10">
-          <div className="w-20 h-20 rounded-3xl bg-blue-900 flex items-center justify-center mx-auto mb-6 rotate-3 shadow-xl shadow-blue-900/20">
-            <Lock className="text-white -rotate-3" size={32} />
+          <div className="w-20 h-20 rounded-3xl bg-[#1e3a5f] flex items-center justify-center mx-auto mb-6 rotate-3 shadow-2xl shadow-blue-900/20 relative overflow-hidden group hover:rotate-0 transition-transform duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <BookOpen className="text-[#c8a84b] -rotate-3 group-hover:rotate-0 transition-transform duration-500" size={40} />
           </div>
-          <h1 className="font-extrabold text-2xl text-blue-900 tracking-tight">Portal Admin</h1>
-          <p className="text-gray-400 text-sm mt-1">Sistem Pendaftaran Anggota Perpustakaan</p>
+          <h1 className="font-extrabold text-2xl text-[#1e3a5f] tracking-tight uppercase">Portal Admin</h1>
+          <p className="text-[10px] font-bold text-[#c8a84b] uppercase tracking-[0.2em] mt-1">Dispuspa Kabupaten Batang</p>
         </div>
         
         {loginError && (
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Admin</label>
             <input 
-              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-blue-900/10 outline-none transition-all" 
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
               value={loginEmail} 
               onChange={e=>setLoginEmail(e.target.value)} 
               onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
             <input 
               type="password" 
-              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-blue-900/10 outline-none transition-all" 
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
               value={loginPass} 
               onChange={e=>setLoginPass(e.target.value)} 
               onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
@@ -235,7 +235,7 @@ export default function AdminDashboard() {
           <button 
             onClick={handleLogin} 
             disabled={isLoggingIn}
-            className="w-full py-4 bg-blue-900 rounded-2xl text-white font-bold text-sm transition-all hover:bg-blue-800 active:scale-95 shadow-lg shadow-blue-900/20 mt-4 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[#1e3a5f] rounded-2xl text-white font-bold text-sm transition-all hover:bg-[#1e3a5f]/90 active:scale-95 shadow-lg shadow-blue-900/20 mt-4 flex items-center justify-center gap-2"
           >
             {isLoggingIn ? (
               <><Loader2 className="animate-spin" size={18} /> MEMPROSES...</>
@@ -252,13 +252,13 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
-              <LayoutDashboard size={20} />
+          <div className="flex items-center gap-4 group">
+            <div className="w-12 h-12 bg-[#1e3a5f] rounded-[1.2rem] flex items-center justify-center text-white shadow-xl shadow-blue-900/10 group-hover:rotate-6 transition-transform duration-300">
+              <BookOpen size={24} className="text-[#c8a84b]" />
             </div>
             <div>
-              <h1 className="text-lg font-extrabold text-blue-900 leading-none text-wrap max-w-[150px] md:max-w-none">DASHBOARD ADMIN</h1>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Dispuspa Kab. Batang</p>
+              <h1 className="text-xl font-black text-[#1e3a5f] leading-none tracking-tight">DASHBOARD <span className="text-[#c8a84b]">ADMIN</span></h1>
+              <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-[0.2em] mt-1">Dispuspa Kab. Batang</p>
             </div>
           </div>
           
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password Baru</label>
                 <input 
                   type="password" 
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3 text-sm focus:bg-white focus:border-blue-900/10 outline-none transition-all" 
+                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
                   value={newPassword} 
                   onChange={e => setNewPassword(e.target.value)} 
                   placeholder="Min. 6 karakter"
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
               <button 
                 onClick={handleUpdatePassword}
                 disabled={isUpdatingPass || newPassword.length < 6}
-                className="w-full py-3 bg-blue-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-800 transition-all active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
+                className="w-full py-3 bg-[#1e3a5f] text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-[#1e3a5f]/90 transition-all active:scale-95 disabled:bg-gray-300 disabled:active:scale-100"
               >
                 {isUpdatingPass ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                 SIMPAN PERUBAHAN

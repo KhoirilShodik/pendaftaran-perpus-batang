@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BookOpen, Info } from "lucide-react";
 import RegistrationForm from "./components/RegistrationForm";
 
 export const metadata: Metadata = {
@@ -9,92 +10,93 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] font-sans">
       {/* ── TOP BAR ── */}
       <div className="bg-[#c8a84b] py-1.5 px-4 text-center">
-        <p className="text-xs text-[#1e3a5f] font-semibold tracking-wide uppercase">
+        <p className="text-[10px] text-[#1e3a5f] font-extrabold tracking-[0.2em] uppercase">
           Layanan Online · Dinas Perpustakaan dan Kearsipan Kabupaten Batang
         </p>
       </div>
 
       {/* ── HEADER ── */}
-      <header className="bg-[#1e3a5f] shadow-xl">
-  {/* Menggunakan items-center & text-center untuk memastikan semua konten di tengah */}
-  <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col items-center text-center gap-4">
-    
-    {/* Ikon: Menggunakan shrink-0 agar tidak gepeng di layar sempit */}
-    <div className="flex-shrink-0 w-16 h-16 bg-white/10 rounded-full flex items-center justify-center border-2 border-[#c8a84b]">
-      <svg
-        className="w-9 h-9 text-[#c8a84b]"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-        />
-      </svg>
-    </div>
+      <header className="bg-[#1e3a5f] relative overflow-hidden">
+        {/* Abstract background elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#c8a84b]/10 rounded-full -ml-32 -mb-32 blur-3xl" />
 
-    {/* Teks: Diatur center dengan spacing yang lebih pas */}
-    <div className="space-y-1">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wide leading-tight uppercase">
-        Pendaftaran Anggota <br className="sm:hidden" /> Perpustakaan
-      </h1>
-      <p className="text-[#c8a84b] text-sm sm:text-base font-medium">
-        Dinas Perpustakaan dan Kearsipan Kabupaten Batang
-      </p>
-      <p className="text-white/60 text-[10px] sm:text-xs mt-1 uppercase tracking-widest">
-        Isi formulir di bawah ini dengan lengkap dan benar
-      </p>
-    </div>
-  </div>
+        <div className="max-w-4xl mx-auto px-4 py-12 flex flex-col items-center text-center gap-6 relative z-10">
+          {/* Logo Branding */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#c8a84b] to-yellow-300 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+            <div className="relative w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-[#c8a84b]/50 shadow-2xl">
+              <BookOpen className="w-10 h-10 text-[#c8a84b]" strokeWidth={1.5} />
+            </div>
+          </div>
 
-  {/* Decorative gold divider */}
-  <div className="h-1 bg-gradient-to-r from-[#c8a84b] via-yellow-300 to-[#c8a84b]" />
-</header>
+          <div className="space-y-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight uppercase">
+              Pendaftaran Anggota <br className="sm:hidden" /> <span className="text-[#c8a84b]">Perpustakaan</span>
+            </h1>
+            <div className="h-1 w-20 bg-[#c8a84b] mx-auto rounded-full" />
+            <p className="text-white/80 text-sm sm:text-base font-medium tracking-wide">
+              Dinas Perpustakaan dan Kearsipan Kabupaten Batang
+            </p>
+            <p className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold mt-4">
+              Lengkapi formulir digital di bawah ini
+            </p>
+          </div>
+        </div>
+
+        {/* Decorative divider */}
+        <div className="h-1.5 bg-gradient-to-r from-transparent via-[#c8a84b] to-transparent opacity-50" />
+      </header>
 
       {/* ── INFO BANNER ── */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6">
-        <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <svg
-            className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="text-sm text-blue-800 leading-relaxed">
-            <span className="font-semibold">Perhatian:</span> Pastikan data yang
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-6 relative z-20">
+        <div className="flex items-start gap-4 bg-white/80 backdrop-blur-md border border-blue-100 rounded-2xl p-5 shadow-xl shadow-blue-900/5">
+          <div className="p-2 bg-blue-50 rounded-xl text-blue-600 shrink-0">
+            <Info size={20} />
+          </div>
+          <div className="text-sm text-gray-600 leading-relaxed">
+            <span className="font-bold text-blue-900">Penting:</span> Pastikan data yang
             Anda isi sesuai dengan dokumen identitas resmi. Kolom bertanda{" "}
-            <span className="text-red-600 font-bold">*</span> wajib diisi.
-            Proses verifikasi membutuhkan waktu 1–3 hari kerja.
+            <span className="text-rose-500 font-bold">*</span> wajib diisi.
+            Proses verifikasi oleh admin membutuhkan waktu <span className="font-bold text-blue-900 underline decoration-[#c8a84b] decoration-2">1–3 hari kerja</span>.
           </div>
         </div>
       </div>
 
       {/* ── MAIN FORM ── */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 mt-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 mt-10">
         <RegistrationForm />
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-[#1e3a5f] mt-12 py-6 px-4 text-center">
-        <p className="text-white/70 text-xs">
-          © {new Date().getFullYear()} Dinas Perpustakaan dan Kearsipan Kabupaten Batang.
-          Semua hak dilindungi.
-        </p>
-        <p className="text-[#c8a84b] text-xs mt-1">
-          Jl. Pemuda No. 1 Batang, Jawa Tengah · Telp. (0285) 391234
-        </p>
+      <footer className="bg-[#1e3a5f] mt-20 pt-16 pb-10 px-6 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 opacity-50">
+            <div className="h-px w-8 bg-white" />
+            <BookOpen className="text-white" size={16} />
+            <div className="h-px w-8 bg-white" />
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-white/60 text-xs font-medium tracking-widest uppercase">
+              © {new Date().getFullYear()} Dinas Perpustakaan dan Kearsipan Kabupaten Batang
+            </p>
+            <p className="text-[#c8a84b] text-sm font-bold">
+              Jl. Pemuda No. 1 Batang, Jawa Tengah · Telp. (0285) 391234
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-6 pt-4">
+            <a href="/cek-status" className="text-[10px] font-bold text-white/40 hover:text-[#c8a84b] transition-colors tracking-widest uppercase border border-white/10 px-4 py-2 rounded-full hover:border-[#c8a84b]/30">
+              Cek Status Pendaftaran
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
