@@ -1,5 +1,5 @@
 import React from 'react'
-import { UploadCloud, FileText, CheckCircle2 } from 'lucide-react'
+import { UploadCloud, FileText, CheckCircle2, CreditCard } from 'lucide-react'
 
 interface FileUploadSectionProps {
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: 'pasFoto' | 'fotoKtp') => void
