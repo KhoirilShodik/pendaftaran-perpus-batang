@@ -1,5 +1,10 @@
 import React from 'react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
+import { 
+  X, User, MapPin, Phone, Mail, School, 
+  CheckCircle2, XCircle, Download, Loader2, 
+  Info, Heart, ShieldAlert, CreditCard, Calendar
+} from 'lucide-react'
 import { LibraryCardPDF } from '@/app/components/LibraryCardPDF'
 import { Registration } from '@/types'
 
@@ -32,141 +37,206 @@ export function ActionModals({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl flex flex-col"
+        className="bg-white/95 backdrop-blur-md w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl flex flex-col border border-white/20"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
-          <div>
-            <h2 className="text-xl font-bold text-blue-900">Detail Pendaftaran Anggota</h2>
-            <p className="text-sm font-mono text-gray-500">{selectedReg.ticketNumber}</p>
+        <div className="p-6 border-b flex justify-between items-center bg-gray-50/50 rounded-t-3xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-xl text-blue-900">
+              <User size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-blue-900">Detail Pendaftaran</h2>
+              <p className="text-xs font-mono text-gray-500 tracking-wider uppercase">{selectedReg.ticketNumber}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-2xl hover:rotate-90 transition-transform">✕</button>
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-gray-200/50 rounded-full transition-all duration-200 active:scale-90 text-gray-500"
+          >
+            <X size={24} />
+          </button>
         </div>
 
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-3 border-b pb-1">Data Pribadi</h3>
-              <div className="grid grid-cols-2 gap-y-3 text-sm">
-                <span className="text-gray-500">Nama Lengkap</span> <span className="font-medium">{selectedReg.fullname}</span>
-                <span className="text-gray-500">NIK</span> <span className="font-mono">{selectedReg.identityNo}</span>
-                <span className="text-gray-500">Tempat, Tgl Lahir</span> <span>{selectedReg.placeOfBirth}, {selectedReg.dateOfBirth}</span>
-                <span className="text-gray-500">Jenis Kelamin</span> <span>{selectedReg.sexId === 1 ? 'Laki-laki' : 'Perempuan'}</span>
-                <span className="text-gray-500">Alamat</span> <span className="leading-tight">{selectedReg.address}, RT{selectedReg.rt}/RW{selectedReg.rw}, {selectedReg.kelurahan}, {selectedReg.kecamatan}</span>
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <Info size={12} /> Data Pribadi
+              </h3>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between items-start group">
+                  <span className="text-gray-400 flex items-center gap-2"><User size={14} /> Nama</span>
+                  <span className="font-semibold text-gray-800 text-right">{selectedReg.fullname}</span>
+                </div>
+                <div className="flex justify-between items-start group">
+                  <span className="text-gray-400 flex items-center gap-2"><CreditCard size={14} /> NIK</span>
+                  <span className="font-mono text-gray-800">{selectedReg.identityNo}</span>
+                </div>
+                <div className="flex justify-between items-start group">
+                  <span className="text-gray-400 flex items-center gap-2"><Calendar size={14} /> TTL</span>
+                  <span className="text-gray-800 text-right">{selectedReg.placeOfBirth}, {selectedReg.dateOfBirth}</span>
+                </div>
+                <div className="flex justify-between items-start group">
+                  <span className="text-gray-400 flex items-center gap-2"><MapPin size={14} /> Alamat</span>
+                  <span className="text-gray-800 text-right max-w-[200px] leading-tight">
+                    {selectedReg.address}, RT{selectedReg.rt}/RW{selectedReg.rw}, {selectedReg.kelurahan}, {selectedReg.kecamatan}
+                  </span>
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div>
-              <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-3 border-b pb-1">Kontak & Pendidikan</h3>
-              <div className="grid grid-cols-2 gap-y-3 text-sm">
-                <span className="text-gray-500">No. HP</span> <span className="font-medium text-green-700">{selectedReg.noHp}</span>
-                <span className="text-gray-500">Email</span> <span>{selectedReg.email}</span>
-                <span className="text-gray-500">Instansi</span> <span>{selectedReg.institutionName || '-'}</span>
+            <section>
+              <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <Phone size={12} /> Kontak & Instansi
+              </h3>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 flex items-center gap-2"><Phone size={14} /> No. HP</span>
+                  <span className="font-bold text-green-700">{selectedReg.noHp}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 flex items-center gap-2"><Mail size={14} /> Email</span>
+                  <span className="text-gray-800">{selectedReg.email}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 flex items-center gap-2"><School size={14} /> Instansi</span>
+                  <span className="text-gray-800">{selectedReg.institutionName || '-'}</span>
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div>
-              <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-3 border-b pb-1">Kontak Darurat</h3>
-              <div className="grid grid-cols-2 gap-y-3 text-sm">
-                <span className="text-gray-500">Nama</span> <span>{selectedReg.namaDarurat}</span>
-                <span className="text-gray-500">No. Telp</span> <span>{selectedReg.telpDarurat}</span>
-                <span className="text-gray-500">Hubungan</span> <span>{selectedReg.statusHubunganDarurat}</span>
+            <section>
+              <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <Heart size={12} /> Kontak Darurat
+              </h3>
+              <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Nama</span>
+                  <span className="font-medium">{selectedReg.namaDarurat}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Hubungan</span>
+                  <span className="text-gray-600 italic">{selectedReg.statusHubunganDarurat}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Telepon</span>
+                  <span className="font-mono text-blue-700">{selectedReg.telpDarurat}</span>
+                </div>
               </div>
-            </div>
+            </section>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-3 border-b pb-1">Berkas Lampiran</h3>
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4">Berkas Lampiran</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Pas Foto</p>
-                  {selectedReg.pasFotoUrl ? (
-                    <img
-                      src={getImageUrl(selectedReg.pasFotoUrl || '', 'pas-foto') || ''}
-                      alt="Pas Foto Anggota"
-                      className="w-full rounded-lg border border-gray-200 object-cover aspect-[3/4]"
-                    />
-                  ) : (
-                    <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
-                      Foto tidak tersedia
-                    </div>
-                  )}
+                  <p className="text-[9px] font-bold text-gray-400 uppercase text-center tracking-widest">Pas Foto</p>
+                  <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4]">
+                    {selectedReg.pasFotoUrl ? (
+                      <img
+                        src={getImageUrl(selectedReg.pasFotoUrl || '', 'pas-foto') || ''}
+                        alt="Pas Foto"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                        <User size={32} strokeWidth={1} />
+                        <span className="text-[10px]">Kosong</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Foto KTP</p>
-                  {selectedReg.fotoKtpUrl ? (
-                    <img
-                      src={getImageUrl(selectedReg.fotoKtpUrl || '', 'foto-ktp') || ''}
-                      alt="Foto KTP Anggota"
-                      className="w-full rounded-lg border border-gray-200 object-cover aspect-[3/4]"
-                    />
-                  ) : (
-                    <div className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-4">
-                      Foto tidak tersedia
-                    </div>
-                  )}
+                  <p className="text-[9px] font-bold text-gray-400 uppercase text-center tracking-widest">Foto KTP</p>
+                  <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4]">
+                    {selectedReg.fotoKtpUrl ? (
+                      <img
+                        src={getImageUrl(selectedReg.fotoKtpUrl || '', 'foto-ktp') || ''}
+                        alt="Foto KTP"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                        <CreditCard size={32} strokeWidth={1} />
+                        <span className="text-[10px]">Kosong</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             {selectedReg.status === 'Ditolak' && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-xs font-bold text-red-700 uppercase mb-1">Alasan Penolakan:</p>
-                <p className="text-sm italic">{selectedReg.rejectReason}</p>
+              <div className="p-5 bg-rose-50 border border-rose-100 rounded-2xl flex gap-4 items-start">
+                <div className="p-2 bg-rose-100 rounded-lg text-rose-600 shrink-0">
+                  <ShieldAlert size={20} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-rose-700 uppercase mb-1 tracking-wider">Alasan Penolakan</p>
+                  <p className="text-sm text-rose-900/80 leading-relaxed italic">"{selectedReg.rejectReason}"</p>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="p-6 border-t bg-gray-50 rounded-b-2xl">
+        <div className="p-6 border-t bg-gray-50/50 rounded-b-3xl">
           {selectedReg.status === 'Menunggu' && !showRejectForm && (
             <div className="flex gap-4">
               <button 
                 onClick={() => setShowRejectForm(true)}
-                className="flex-1 py-3 bg-white border border-red-600 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-colors"
+                className="flex-1 py-3.5 bg-white border border-rose-200 text-rose-600 font-bold rounded-2xl hover:bg-rose-50 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 shadow-sm shadow-rose-100/50"
               >
-                ✗ TOLAK PENDAFTARAN
+                <XCircle size={18} /> TOLAK
               </button>
               <button 
                 onClick={() => onApprove(selectedReg)}
-                className="flex-2 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-800 shadow-lg shadow-green-200 transition-colors flex-[2]"
+                className="flex-[2] py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold rounded-2xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-green-200"
               >
-                ✓ SETUJUI & KIRIM KE INLISLITE
+                <CheckCircle2 size={18} /> SETUJUI & KIRIM
               </button>
             </div>
           )}
 
           {showRejectForm && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <label htmlFor="reject-textarea" className="block text-sm font-bold mb-2">Alasan Penolakan (Wajib diisi):</label>
+            <div className="animate-in slide-in-from-bottom-4 duration-300">
+              <label htmlFor="reject-textarea" className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <ShieldAlert size={16} className="text-rose-500" /> Alasan Penolakan:
+              </label>
               <textarea 
                 id="reject-textarea"
-                className="w-full border-2 border-red-100 rounded-xl p-4 text-sm focus:border-red-400 outline-none mb-4"
+                className="w-full border-2 border-rose-50 rounded-2xl p-4 text-sm focus:border-rose-300 outline-none mb-4 bg-white transition-all focus:ring-4 focus:ring-rose-50"
                 rows={3}
-                placeholder="Contoh: Foto KTP tidak terbaca jelas atau data tidak sesuai dokumen..."
+                placeholder="Jelaskan alasan penolakan secara jelas kepada pendaftar..."
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
               />
-              <div className="flex gap-3">
-                <button onClick={() => setShowRejectForm(false)} className="px-6 py-2 text-sm font-bold text-gray-500">Batal</button>
+              <div className="flex gap-3 justify-end">
+                <button 
+                  onClick={() => setShowRejectForm(false)} 
+                  className="px-6 py-2.5 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Batal
+                </button>
                 <button 
                   onClick={onReject}
                   disabled={!rejectReason.trim()}
-                  className={`px-8 py-2 text-sm font-bold text-white rounded-lg transition-all ${!rejectReason.trim() ? 'bg-gray-300' : 'bg-red-600 hover:bg-red-700'}`}
+                  className={`px-8 py-2.5 text-sm font-bold text-white rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-2 ${!rejectReason.trim() ? 'bg-gray-300' : 'bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200'}`}
                 >
-                  KONFIRMASI TOLAK
+                  <XCircle size={16} /> KONFIRMASI TOLAK
                 </button>
               </div>
             </div>
           )}
 
           {selectedReg.status === 'Disetujui' && (
-            <div className="mb-4">
+            <div className="w-full">
               {qrCodeData ? (
                 <PDFDownloadLink
                   document={
@@ -184,16 +254,20 @@ export function ActionModals({
                   {({ loading }) => (
                     <button 
                       disabled={loading}
-                      className="w-full py-3 bg-[#1e3a5f] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-800 transition-colors shadow-lg"
+                      className="w-full py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-95 transition-all duration-200 active:scale-95 shadow-xl shadow-blue-200"
                     >
-                      {loading ? 'MENYIAPKAN DOKUMEN...' : '📥 DOWNLOAD KARTU DIGITAL'}
+                      {loading ? (
+                        <><Loader2 className="animate-spin" size={20} /> MENYIAPKAN...</>
+                      ) : (
+                        <><Download size={20} /> UNDUH KARTU DIGITAL</>
+                      )}
                     </button>
                   )}
                 </PDFDownloadLink>
               ) : (
-                <div className="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                  GENERATING QR CODE...
+                <div className="w-full py-4 bg-gray-100 text-gray-400 font-bold rounded-2xl flex items-center justify-center gap-3">
+                  <Loader2 className="animate-spin" size={20} />
+                  MEMPROSES DATA...
                 </div>
               )}
             </div>
@@ -202,9 +276,9 @@ export function ActionModals({
           {selectedReg.status !== 'Menunggu' && (
             <button 
               onClick={onClose}
-              className="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-xl"
+              className="w-full mt-4 py-3 bg-gray-200/50 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-95"
             >
-              TUTUP DETAIL
+              TUTUP
             </button>
           )}
         </div>

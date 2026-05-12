@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import QRCode from 'qrcode'
+import { RefreshCw, LogOut, Lock, LayoutDashboard, ShieldAlert } from 'lucide-react'
 
 import { Registration, RegistrationStatus } from '@/types'
 import { ADMIN_CONFIG } from '@/lib/constants'
@@ -111,60 +112,105 @@ export default function AdminDashboard() {
   };
 
   if (!isLoggedIn) return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-sm border-t-4" style={{borderColor: '#1e3a5f'}}>
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{backgroundColor:'#1e3a5f'}}>
-            <span className="text-2xl">🔐</span>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+      <div className="bg-white rounded-3xl shadow-2xl shadow-blue-900/10 p-10 w-full max-w-md border border-gray-100 animate-in fade-in zoom-in duration-500">
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 rounded-3xl bg-blue-900 flex items-center justify-center mx-auto mb-6 rotate-3 shadow-xl shadow-blue-900/20">
+            <Lock className="text-white -rotate-3" size={32} />
           </div>
-          <h1 className="font-bold text-xl uppercase tracking-tight" style={{color:'#1e3a5f'}}>Login Admin</h1>
-          <p className="text-gray-500 text-xs">Dinas Perpustakaan dan Kearsipan Batang</p>
+          <h1 className="font-extrabold text-2xl text-blue-900 tracking-tight">Portal Admin</h1>
+          <p className="text-gray-400 text-sm mt-1">Sistem Pendaftaran Anggota Perpustakaan</p>
         </div>
-        {loginError && <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg mb-4 border border-red-100">{loginError}</div>}
-        <div className="mb-4">
-          <label className="block text-xs font-bold uppercase mb-1" style={{color:'#1e3a5f'}}>Username</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-900 outline-none" value={loginUser} onChange={e=>setLoginUser(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="admin.perpus"/>
+        
+        {loginError && (
+          <div className="bg-rose-50 text-rose-600 text-xs p-4 rounded-2xl mb-6 border border-rose-100 flex items-center gap-3 animate-in slide-in-from-top-2">
+            <div className="w-1 h-1 bg-rose-600 rounded-full shrink-0" />
+            {loginError}
+          </div>
+        )}
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Username</label>
+            <input 
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-blue-900/10 outline-none transition-all" 
+              value={loginUser} 
+              onChange={e=>setLoginUser(e.target.value)} 
+              onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
+              placeholder="admin.perpus"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+            <input 
+              type="password" 
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-blue-900/10 outline-none transition-all" 
+              value={loginPass} 
+              onChange={e=>setLoginPass(e.target.value)} 
+              onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
+              placeholder="••••••••"
+            />
+          </div>
+          <button 
+            onClick={handleLogin} 
+            className="w-full py-4 bg-blue-900 rounded-2xl text-white font-bold text-sm transition-all hover:bg-blue-800 active:scale-95 shadow-lg shadow-blue-900/20 mt-4"
+          >
+            MASUK KE DASHBOARD
+          </button>
         </div>
-        <div className="mb-6">
-          <label className="block text-xs font-bold uppercase mb-1" style={{color:'#1e3a5f'}}>Password</label>
-          <input type="password" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-900 outline-none" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="••••••••"/>
-        </div>
-        <button onClick={handleLogin} className="w-full py-2.5 rounded-lg text-white font-bold text-sm transition-opacity hover:opacity-90" style={{backgroundColor:'#1e3a5f'}}>MASUK SISTEM</button>
       </div>
     </div>
   )
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
-      <header className="text-white py-6 px-6 shadow-md" style={{backgroundColor:'#1e3a5f'}}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-bold tracking-widest">DASHBOARD ADMIN — PENDAFTARAN ANGGOTA</h1>
-              <button onClick={fetchRegistrations} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition ml-2">
-                🔄 Refresh
-              </button>
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+              <LayoutDashboard size={20} />
             </div>
-            <p className="text-sm opacity-80" style={{color:'#c8a84b'}}>Dinas Perpustakaan dan Kearsipan Kabupaten Batang</p>
+            <div>
+              <h1 className="text-lg font-extrabold text-blue-900 leading-none">DASHBOARD ADMIN</h1>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Dispuspa Kab. Batang</p>
+            </div>
           </div>
-          <button onClick={() => setIsLoggedIn(false)} className="text-xs bg-red-700 hover:bg-red-800 px-4 py-2 rounded font-bold transition-colors">LOGOUT</button>
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={fetchRegistrations} 
+              className="p-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all active:scale-95 text-gray-500 flex items-center gap-2 px-4"
+            >
+              <RefreshCw size={16} className={isLoadingData ? 'animate-spin' : ''} />
+              <span className="text-xs font-bold md:block hidden">Refresh</span>
+            </button>
+            <button 
+              onClick={() => setIsLoggedIn(false)} 
+              className="p-2.5 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all active:scale-95 text-rose-600 flex items-center gap-2 px-4"
+            >
+              <LogOut size={16} />
+              <span className="text-xs font-bold md:block hidden">Keluar</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 mt-8">
-        {isLoadingData && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-10 h-10 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-gray-500 text-sm">Memuat data pendaftaran...</p>
-            </div>
+      <main className="max-w-7xl mx-auto px-6 mt-10">
+        {isLoadingData && !registrations.length && (
+          <div className="flex flex-col items-center justify-center py-32 opacity-20">
+            <RefreshCw className="animate-spin mb-4" size={48} strokeWidth={1} />
+            <p className="font-bold tracking-widest text-xs uppercase">Menyiapkan Data...</p>
           </div>
         )}
         
         {fetchError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-red-600 text-sm flex items-center gap-2">
-            ⚠️ {fetchError}
-            <button onClick={fetchRegistrations} className="ml-auto text-xs underline">Coba lagi</button>
+          <div className="bg-rose-50 border border-rose-100 rounded-3xl p-5 mb-8 text-rose-600 text-sm flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+            <ShieldAlert size={24} />
+            <div className="flex-1">
+              <p className="font-bold">Gagal Sinkronisasi</p>
+              <p className="text-xs opacity-80">{fetchError}</p>
+            </div>
+            <button onClick={fetchRegistrations} className="bg-rose-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-200">Coba Lagi</button>
           </div>
         )}
 
