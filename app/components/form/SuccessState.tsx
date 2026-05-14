@@ -12,7 +12,7 @@ export function SuccessState({ ticketNumber, email }: SuccessStateProps) {
     // Custom toast or alert could go here
   }
 
-  return (
+  return (  
     <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-500">
       <div className="bg-white rounded-[3rem] shadow-2xl shadow-blue-900/10 border border-gray-100 p-8 md:p-12 text-center max-w-lg w-full relative overflow-hidden">
         {/* Background Accent */}

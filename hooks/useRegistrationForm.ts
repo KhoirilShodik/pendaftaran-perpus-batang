@@ -75,6 +75,26 @@ export function useRegistrationForm() {
     }
   }
 
+  const handleCameraCapture = (file: File, type: 'pasFoto' | 'fotoKtp') => {
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, [type]: 'Ukuran foto melebihi 2MB' }))
+      return
+    }
+    const previewUrl = URL.createObjectURL(file)
+    if (type === 'pasFoto') {
+      setPasFoto(file)
+      setPasFotoPreview(previewUrl)
+    } else {
+      setFotoKtp(file)
+      setFotoKtpPreview(previewUrl)
+    }
+    setErrors(prev => {
+      const newErrors = { ...prev }
+      delete newErrors[type]
+      return newErrors
+    })
+  }
+
   const validate = () => {
     const newErrors: FormErrors = {}
     
@@ -240,6 +260,7 @@ export function useRegistrationForm() {
     fotoKtpPreview,
     handleInputChange,
     handleFileChange,
+    handleCameraCapture,
     handleSubmit
   }
 }

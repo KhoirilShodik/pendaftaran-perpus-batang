@@ -24,6 +24,7 @@ export default function RegistrationForm() {
     fotoKtpPreview,
     handleInputChange,
     handleFileChange,
+    handleCameraCapture,
     handleSubmit
   } = useRegistrationForm()
 
@@ -68,6 +69,7 @@ export default function RegistrationForm() {
 
         <FileUploadSection 
           handleFileChange={handleFileChange}
+          handleCameraCapture={handleCameraCapture}
           pasFotoPreview={pasFotoPreview}
           fotoKtpPreview={fotoKtpPreview}
           errors={errors}

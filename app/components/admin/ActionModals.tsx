@@ -3,7 +3,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer'
 import { 
   X, User, MapPin, Phone, Mail, School, 
   CheckCircle2, XCircle, Download, Loader2, 
-  Info, Heart, ShieldAlert, CreditCard, Calendar
+  Info, Heart, ShieldAlert, CreditCard, Calendar, Eye
 } from 'lucide-react'
 import { LibraryCardPDF } from '@/app/components/LibraryCardPDF'
 import { Registration } from '@/types'
@@ -134,40 +134,78 @@ export function ActionModals({
           <div className="space-y-8">
             <section>
               <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4">Berkas Lampiran</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase text-center tracking-widest">Pas Foto</p>
-                  <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4]">
-                    {selectedReg.pasFotoUrl ? (
+              
+              {/* Pas Foto - Vertikal */}
+              <div className="mb-4">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <User size={10} /> Pas Foto 
+                  <span className="text-gray-300 font-normal">(Vertikal)</span>
+                </p>
+                <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4] max-w-[160px]">
+                  {selectedReg.pasFotoUrl ? (
+                    <>
                       <img
                         src={getImageUrl(selectedReg.pasFotoUrl || '', 'pas-foto') || ''}
                         alt="Pas Foto"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
-                        <User size={32} strokeWidth={1} />
-                        <span className="text-[10px]">Kosong</span>
-                      </div>
-                    )}
-                  </div>
+                      {/* Overlay click to view */}
+                      <a
+                        href={getImageUrl(selectedReg.pasFotoUrl || '', 'pas-foto') || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100"
+                        title="Klik untuk lihat/unduh"
+                      >
+                        <div className="flex flex-col items-center gap-1 text-white">
+                          <Eye size={20} />
+                          <span className="text-[10px] font-bold">Lihat / Unduh</span>
+                        </div>
+                      </a>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                      <User size={32} strokeWidth={1} />
+                      <span className="text-[10px]">Kosong</span>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase text-center tracking-widest">Foto KTP</p>
-                  <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4]">
-                    {selectedReg.fotoKtpUrl ? (
+              </div>
+
+              {/* Foto KTP - Horizontal */}
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <CreditCard size={10} /> Foto KTP / Identitas
+                  <span className="text-gray-300 font-normal">(Horizontal)</span>
+                </p>
+                <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[16/9] w-full">
+                  {selectedReg.fotoKtpUrl ? (
+                    <>
                       <img
                         src={getImageUrl(selectedReg.fotoKtpUrl || '', 'foto-ktp') || ''}
                         alt="Foto KTP"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
-                        <CreditCard size={32} strokeWidth={1} />
-                        <span className="text-[10px]">Kosong</span>
-                      </div>
-                    )}
-                  </div>
+                      {/* Overlay click to view */}
+                      <a
+                        href={getImageUrl(selectedReg.fotoKtpUrl || '', 'foto-ktp') || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100"
+                        title="Klik untuk lihat/unduh"
+                      >
+                        <div className="flex flex-col items-center gap-1 text-white">
+                          <Eye size={20} />
+                          <span className="text-[10px] font-bold">Lihat / Unduh</span>
+                        </div>
+                      </a>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                      <CreditCard size={32} strokeWidth={1} />
+                      <span className="text-[10px]">Kosong</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
