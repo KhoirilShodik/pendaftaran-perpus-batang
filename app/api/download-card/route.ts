@@ -46,7 +46,6 @@ export async function GET(request: Request) {
 
     // 2. Format URL gambar profil (Lokal /uploads atau Absolut)
     let pasFotoPublicUrl = '';
-    let pasFotoDataUrl = '';
     if (registration.pas_foto_url) {
       const cleanPath = registration.pas_foto_url.trim();
       if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
@@ -56,43 +55,6 @@ export async function GET(request: Request) {
           ? cleanPath 
           : `/uploads/${cleanPath}`;
         pasFotoPublicUrl = `${baseUrl}${imagePath}`;
-      }
-
-      // Convert remote URL to Base64 data URL specifically for @react-pdf/renderer
-      try {
-        console.log('Fetching pas_foto from URL:', pasFotoPublicUrl);
-        const imgRes = await fetch(pasFotoPublicUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
-          }
-        });
-
-        if (imgRes.ok) {
-          console.log(`Successfully fetched image from ${pasFotoPublicUrl}. Status: ${imgRes.status} ${imgRes.statusText}`);
-          const arrayBuffer = await imgRes.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
-          pasFotoDataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
-          console.log(`Converted image to Base64 (length: ${pasFotoDataUrl.length}, mimeType: ${mimeType})`);
-        } else {
-          console.error(`Failed to fetch image for PDF. Status: ${imgRes.status} ${imgRes.statusText}. URL: ${pasFotoPublicUrl}`);
-          try {
-            const errText = await imgRes.text();
-            console.error('Response body:', errText.slice(0, 500));
-          } catch (e) {
-            console.error('Could not read response body');
-          }
-        }
-      } catch (err: any) {
-        console.error('Error fetching pas_foto for PDF from URL:', pasFotoPublicUrl, 'Error details:', err);
-        if (err instanceof Error) {
-          console.error('Error name:', err.name);
-          console.error('Error message:', err.message);
-          console.error('Error stack:', err.stack);
-        }
       }
     }
 
@@ -104,7 +66,7 @@ export async function GET(request: Request) {
           ticketNumber: registration.ticket_no
         },
         qrCodeUrl: qrCodeData,
-        pasFotoPublicUrl: pasFotoDataUrl || pasFotoPublicUrl
+        pasFotoPublicUrl: pasFotoPublicUrl
       }) as any
     );
 
