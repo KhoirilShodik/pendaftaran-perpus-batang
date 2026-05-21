@@ -58,7 +58,7 @@ export default function AdminDashboard() {
         if (res.ok) {
           const data = await res.json();
           setUserRole(data.user.role);
-          setActiveTab(data.user.role === 'superadmin' ? 'pengguna' : 'profil');
+          setActiveTab('dashboard');
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(data.error || 'Gagal login');
       
       setUserRole(data.user.role);
-      setActiveTab(data.user.role === 'superadmin' ? 'pengguna' : 'profil');
+      setActiveTab('dashboard');
       setIsLoggedIn(true);
       setLoginEmail('');
       setLoginPass('');
