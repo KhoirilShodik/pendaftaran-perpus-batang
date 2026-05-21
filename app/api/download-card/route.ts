@@ -46,6 +46,7 @@ export async function GET(request: Request) {
 
     // 2. Format URL gambar profil (Lokal /uploads atau Absolut)
     let pasFotoPublicUrl = '';
+    let pasFotoDataUrl = '';
     if (registration.pas_foto_url) {
       const cleanPath = registration.pas_foto_url.trim();
       if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
@@ -55,6 +56,21 @@ export async function GET(request: Request) {
           ? cleanPath 
           : `/uploads/${cleanPath}`;
         pasFotoPublicUrl = `${baseUrl}${imagePath}`;
+      }
+
+      // Convert remote URL to Base64 data URL specifically for @react-pdf/renderer
+      try {
+        const imgRes = await fetch(pasFotoPublicUrl);
+        if (imgRes.ok) {
+          const arrayBuffer = await imgRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+          pasFotoDataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+        } else {
+          console.error('Failed to fetch image for PDF, status:', imgRes.status);
+        }
+      } catch (err) {
+        console.error('Error fetching pas_foto for PDF:', err);
       }
     }
 
@@ -66,7 +82,7 @@ export async function GET(request: Request) {
           ticketNumber: registration.ticket_no
         },
         qrCodeUrl: qrCodeData,
-        pasFotoPublicUrl: pasFotoPublicUrl
+        pasFotoPublicUrl: pasFotoDataUrl || pasFotoPublicUrl
       }) as any
     );
 
