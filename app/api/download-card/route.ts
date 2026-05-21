@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       }
     });
 
-    // 2. Format URL gambar profil (Lokal /uploads atau Absolut)
+    // 2. Format URL gambar profil (Lokal /uploads atau Absolut) dengan Cache Buster
     let pasFotoPublicUrl = '';
     if (registration.pas_foto_url) {
       const cleanPath = registration.pas_foto_url.trim();
@@ -56,6 +56,10 @@ export async function GET(request: Request) {
           : `/uploads/${cleanPath}`;
         pasFotoPublicUrl = `${baseUrl}${imagePath}`;
       }
+
+      // Tambahkan trik Cache Buster berupa parameter timestamp unik di ujung URL-nya
+      const separator = pasFotoPublicUrl.includes('?') ? '&' : '?';
+      pasFotoPublicUrl = `${pasFotoPublicUrl}${separator}t=${Date.now()}`;
     }
 
     // 3. Render PDF ke stream
