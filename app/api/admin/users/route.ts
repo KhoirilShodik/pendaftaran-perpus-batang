@@ -79,6 +79,11 @@ export async function POST(request: Request) {
   }
 }
 
+// Helper: konversi undefined → null agar mysql2 tidak error "Bind parameters must not contain undefined"
+function sanitize<T>(value: T | undefined): T | null {
+  return value === undefined ? null : value;
+}
+
 // 3. [PUT] Memperbarui atau Reset Akun Pengguna Lain
 export async function PUT(request: Request) {
   const adminAktif = await konfigurasiSuperAdmin();
@@ -88,31 +93,45 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, name, email, password, role, is_active } = body;
 
+    // Destructure & sanitasi semua field — undefined dikonversi ke null
+    const id = sanitize(body.id);
+    const name = sanitize(body.name);
+    const email = sanitize(body.email);
+    const role = sanitize(body.role);
+    const is_active = sanitize(body.is_active);   // boleh 0 atau 1
+    const password = body.password ?? null;        // string kosong tetap null
+
+    // Log payload yang masuk untuk debugging (tidak mencetak password asli)
+    console.log('[PUT /api/admin/users] payload:', { id, name, email, role, is_active, hasPassword: !!password });
+
+    // Validasi field wajib
     if (!id || !name || !email || !role) {
-      return NextResponse.json({ error: 'Data tidak lengkap untuk pembaruan' }, { status: 400 });
+      return NextResponse.json({ error: 'Data tidak lengkap untuk pembaruan (id, name, email, role wajib ada)' }, { status: 400 });
     }
+
+    // Cegah is_active bernilai undefined/null menjadi masalah — default ke 1 jika tidak dikirim
+    const activeValue = is_active !== null ? is_active : 1;
 
     if (password) {
       // Jika superadmin mereset password
       const hashedPassword = await bcrypt.hash(password, 10);
       await pool.execute(
         'UPDATE admin_users SET name = ?, email = ?, password = ?, role = ?, is_active = ? WHERE id = ?',
-        [name, email, hashedPassword, role, is_active, id]
+        [name, email, hashedPassword, role, activeValue, id]
       );
     } else {
       // Jika mengupdate tanpa ganti password
       await pool.execute(
         'UPDATE admin_users SET name = ?, email = ?, role = ?, is_active = ? WHERE id = ?',
-        [name, email, role, is_active, id]
+        [name, email, role, activeValue, id]
       );
     }
 
     return NextResponse.json({ message: 'Data pengguna berhasil diperbarui' });
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: 'Gagal memperbarui data pengguna' }, { status: 500 });
+    console.error('[PUT /api/admin/users] Error:', error?.message ?? error);
+    return NextResponse.json({ error: 'Gagal memperbarui data pengguna', detail: error?.message }, { status: 500 });
   }
 }
 
