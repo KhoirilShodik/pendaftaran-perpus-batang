@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PATCH — update status (approve/reject)
+// PATCH — update status (approve/reject) + Integrasi Real-time ke INLIS Lite
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
@@ -88,7 +88,7 @@ export async function PATCH(req: NextRequest) {
     // Ambil identitas admin dari JWT cookie
     const token = req.cookies.get('admin_token')?.value;
     let adminIdentity = 'admin.perpus';
-    
+
     if (token) {
       try {
         const { jwtVerify } = await import('jose');
@@ -100,19 +100,90 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    let nextMemberNo = null;
+
     if (status === 'Disetujui') {
+      // 1. Update status pendaftaran menjadi Disetujui di database web Hostinger
       await pool.execute(
         `UPDATE registrations SET status = 'Disetujui', approved_at = NOW(), approved_by = ?, updated_at = NOW() WHERE id = ?`,
         [adminIdentity, id]
       )
+
+      // 2. Ambil data lengkap pendaftar tersebut dari database web Hostinger
+      const [rows] = await pool.execute(
+        `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
+        [id]
+      )
+      const dataPendaftar = (rows as any[])[0]
+
+      if (dataPendaftar) {
+        // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
+        const BRIDGE_URL = 'http://localhost:8123/bridge/index.php?action=insert-member';
+
+        try {
+          // 3. Kirim data pendaftar ke INLIS Lite via PHP Bridge
+          const bridgeResponse = await fetch(BRIDGE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              Fullname: dataPendaftar.fullname,
+              IdentityNo: dataPendaftar.identity_no,
+              PlaceOfBirth: dataPendaftar.place_of_birth,
+              DateOfBirth: dataPendaftar.date_of_birth, // Format Y-m-d otomatis dihandle
+              Address: dataPendaftar.address,
+              Kecamatan: dataPendaftar.kecamatan,
+              Kelurahan: dataPendaftar.kelurahan,
+              RT: dataPendaftar.rt,
+              RW: dataPendaftar.rw,
+              NoHp: dataPendaftar.no_hp,
+              Email: dataPendaftar.email,
+              InstitutionName: dataPendaftar.institution_name,
+              PhotoUrl: dataPendaftar.pas_foto_url,
+              JenisAnggota_id: 13,    // Default 13 (Umum) sesuai database dinas
+              IdentityType_id: 1,     // Default 1 (KTP)
+              EducationLevel_id: dataPendaftar.education_level_id || 1,
+              Sex_id: dataPendaftar.sex_id || 1,
+              Agama_id: dataPendaftar.agama_id || 1
+            }),
+          });
+
+          const bridgeData = await bridgeResponse.json();
+
+          // 4. Jika PHP Bridge sukses memasukkan data ke INLIS Lite, ambil nomor anggota barunya
+          if (bridgeResponse.ok && bridgeData.success) {
+            nextMemberNo = bridgeData.member_no;
+
+            // 5. Timpa nilai ticket_no lama dengan Nomor Anggota resmi dari INLIS Lite
+            await pool.execute(
+              `UPDATE registrations SET ticket_no = ?, updated_at = NOW() WHERE id = ?`,
+              [nextMemberNo, id]
+            );
+          } else {
+            console.error('PHP Bridge mengembalikan error:', bridgeData.error);
+          }
+        } catch (bridgeErr: any) {
+          console.error('Gagal terhubung ke PHP Bridge (Pastikan XAMPP/Bridge menyala):', bridgeErr.message);
+        }
+      }
+
     } else if (status === 'Ditolak') {
+      // Logika jika pendaftaran ditolak oleh petugas
       await pool.execute(
         `UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?`,
         [reject_reason, adminIdentity, id]
       )
     }
 
-    return NextResponse.json({ success: true })
+    // Mengembalikan response sukses ke frontend Next.js admin dashboard
+    return NextResponse.json({
+      success: true,
+      member_no: nextMemberNo,
+      message: status === 'Disetujui' && nextMemberNo
+        ? `Pendaftaran disetujui dan disinkronkan ke INLIS dengan No: ${nextMemberNo}`
+        : 'Status pendaftaran berhasil diperbarui.'
+    })
 
   } catch (err: any) {
     console.error('PATCH registration error:', err)
