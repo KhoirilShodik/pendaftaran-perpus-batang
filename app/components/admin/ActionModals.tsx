@@ -5,6 +5,8 @@ import {
   Info, Heart, ShieldAlert, CreditCard, Calendar, Eye
 } from 'lucide-react'
 import { Registration } from '@/types'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { LibraryCardPDF } from '@/app/components/LibraryCardPDF'
 
 interface ActionModalsProps {
   selectedReg: Registration | null
@@ -283,13 +285,45 @@ export function ActionModals({
           {selectedReg.status === 'Disetujui' && (
             <div className="w-full">
               {qrCodeData ? (
-                <a 
-                  href={`/api/download-card?tiket=${selectedReg.ticketNumber}`}
-                  download={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
-                  className="w-full py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-95 transition-all duration-200 active:scale-95 shadow-xl shadow-blue-200"
-                >
-                  <Download size={20} /> UNDUH KARTU DIGITAL
-                </a>
+                (() => {
+                  // Ambil resolusi path foto asli dari database (apakah dia full url atau path relative /uploads)
+                  const originalFotoUrl = selectedReg.pasFotoUrl 
+                    ? (selectedReg.pasFotoUrl.startsWith('http') ? selectedReg.pasFotoUrl : resolveImageUrl(selectedReg.pasFotoUrl))
+                    : '';
+
+                  // Alirkan lewat Proxy Route lokal agar bebas CORS di browser admin
+                  const proxiedFotoUrl = originalFotoUrl 
+                    ? `/api/proxy-image?url=${encodeURIComponent(originalFotoUrl)}` 
+                    : '';
+
+                  return (
+                    <PDFDownloadLink
+                      document={
+                        <LibraryCardPDF
+                          registration={{
+                            fullname: selectedReg.fullname,
+                            ticketNumber: selectedReg.ticketNumber,
+                          }}
+                          qrCodeUrl={qrCodeData}
+                          pasFotoPublicUrl={proxiedFotoUrl}
+                        />
+                      }
+                      fileName={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
+                      className="w-full py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-95 transition-all duration-200 active:scale-95 shadow-xl shadow-blue-200"
+                    >
+                      {({ loading }) => loading ? (
+                        <>
+                          <Loader2 className="animate-spin" size={20} />
+                          MEMPROSES DATA KARTU...
+                        </>
+                      ) : (
+                        <>
+                          <Download size={20} /> UNDUH KARTU DIGITAL
+                        </>
+                      )}
+                    </PDFDownloadLink>
+                  );
+                })()
               ) : (
                 <div className="w-full py-4 bg-gray-100 text-gray-400 font-bold rounded-2xl flex items-center justify-center gap-3">
                   <Loader2 className="animate-spin" size={20} />
