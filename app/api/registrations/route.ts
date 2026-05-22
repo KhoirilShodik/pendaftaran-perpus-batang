@@ -118,8 +118,7 @@ export async function PATCH(req: NextRequest) {
 
       if (dataPendaftar) {
         // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
-        const BRIDGE_URL = 'http://localhost:8123/bridge/index.php?action=insert-member';
-
+        const BRIDGE_URL = 'https://two-hotels-joke.loca.lt/bridge/index.php?action=insert-member';
         try {
           // 3. Kirim data pendaftar ke INLIS Lite via PHP Bridge
           const bridgeResponse = await fetch(BRIDGE_URL, {
