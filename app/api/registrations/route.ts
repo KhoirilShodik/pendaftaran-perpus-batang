@@ -146,6 +146,10 @@ export async function PATCH(req: NextRequest) {
               RW: dataPendaftar.rw,
               NoHp: dataPendaftar.no_hp,
               Email: dataPendaftar.email,
+              mother_maiden_name: dataPendaftar.motherMaidenName,
+              nama_darurat: dataPendaftar.namaDarurat,
+              telp_darurat: dataPendaftar.telpDarurat,
+              status_hubungan_darurat: dataPendaftar.statusHubunganDarurat,
               InstitutionName: dataPendaftar.institution_name,
               PhotoUrl: dataPendaftar.pas_foto_url,
               JenisAnggota_id: 13,    // Default 13 (Umum) sesuai database dinas
