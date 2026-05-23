@@ -134,29 +134,30 @@ export async function PATCH(req: NextRequest) {
               'bypass-tunnel-reminder': 'true',      // ← Solusi Bypass Halaman Interstitial Loca.lt
               'User-Agent': 'NextJS-PerpusBatang/1.0'  // ← Menyamar sebagai Client Aman terpercaya
             },
+            // SANGAT DISARANKAN: Gunakan snake_case agar sinkron dengan PHP
             body: JSON.stringify({
-              Fullname: dataPendaftar.fullname,
-              IdentityNo: dataPendaftar.identity_no,
-              PlaceOfBirth: dataPendaftar.place_of_birth,
-              DateOfBirth: dataPendaftar.date_of_birth,
-              Address: dataPendaftar.address,
-              Kecamatan: dataPendaftar.kecamatan,
-              Kelurahan: dataPendaftar.kelurahan,
-              RT: dataPendaftar.rt,
-              RW: dataPendaftar.rw,
-              NoHp: dataPendaftar.no_hp,
-              Email: dataPendaftar.email,
-              mother_maiden_name: dataPendaftar.motherMaidenName,
-              nama_darurat: dataPendaftar.namaDarurat,
-              telp_darurat: dataPendaftar.telpDarurat,
-              status_hubungan_darurat: dataPendaftar.statusHubunganDarurat,
-              InstitutionName: dataPendaftar.institution_name,
-              PhotoUrl: dataPendaftar.pas_foto_url,
-              JenisAnggota_id: 13,    // Default 13 (Umum) sesuai database dinas
-              IdentityType_id: 1,     // Default 1 (KTP)
-              EducationLevel_id: dataPendaftar.education_level_id || 1,
-              Sex_id: dataPendaftar.sex_id || 1,
-              Agama_id: dataPendaftar.agama_id || 1
+              fullname: dataPendaftar.fullname,
+              identity_no: dataPendaftar.identity_no,
+              place_of_birth: dataPendaftar.place_of_birth,
+              date_of_birth: dataPendaftar.date_of_birth,
+              address: dataPendaftar.address,
+              kecamatan: dataPendaftar.kecamatan,
+              kelurahan: dataPendaftar.kelurahan,
+              rt: dataPendaftar.rt,
+              rw: dataPendaftar.rw,
+              no_hp: dataPendaftar.no_hp,
+              email: dataPendaftar.email,
+              mother_maiden_name: dataPendaftar.mother_maiden_name, // Pastikan di database key-nya ini
+              nama_darurat: dataPendaftar.nama_darurat,
+              telp_darurat: dataPendaftar.telp_darurat,
+              status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
+              institution_name: dataPendaftar.institution_name,
+              photo_url: dataPendaftar.pas_foto_url,
+              jenis_anggota_id: 13,
+              identity_type_id: 1,
+              education_level_id: dataPendaftar.education_level_id || 1,
+              sex_id: dataPendaftar.sex_id || 1,
+              agama_id: dataPendaftar.agama_id || 1
             }),
           });
 
