@@ -3,47 +3,38 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { renderToStream } from '@react-pdf/renderer';
 import { LibraryCardPDF } from '@/app/components/LibraryCardPDF';
-import QRCode from 'qrcode';
+import bwipjs from 'bwip-js';
 import { STATUS_CONFIG } from '@/lib/constants';
+import fs from 'fs';
+import path from 'path';
 
-/**
- * Fungsi helper untuk mengunduh gambar dari URL eksternal (Hostinger)
- * dan mengkonversinya ke format Base64 Data URL agar dapat digunakan
- * oleh @react-pdf/renderer di sisi server tanpa masalah CORS.
- *
- * Mengembalikan null jika gambar tidak dapat diunduh (misal 404, 403,
- * atau koneksi gagal), sehingga proses pembuatan PDF tetap berjalan
- * tanpa gambar daripada crash seluruhnya.
- */
-async function getBase64Image(url: string): Promise<string | null> {
+// Fungsi download gambar khusus untuk external URL (misal dari Hostinger Cloud)
+async function getBase64FromExternalUrl(url: string): Promise<string | null> {
   try {
-    console.log('[download-card] Fetching image from:', url);
-
     const res = await fetch(url, {
       method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
     });
-
-    if (!res.ok) {
-      console.error(`[download-card] Failed to fetch image. Status: ${res.status} ${res.statusText}. URL: ${url}`);
-      return null;
-    }
-
+    if (!res.ok) return null;
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     const arrayBuffer = await res.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-
-    console.log(`[download-card] Image fetched successfully. ContentType: ${contentType}, Size: ${buffer.byteLength} bytes`);
-    return `data:${contentType};base64,${base64}`;
-
-  } catch (err: any) {
-    console.error('[download-card] Exception fetching image:', err?.message || err);
+    return `data:${contentType};base64,${buffer.toString('base64')}`;
+  } catch (err) {
     return null;
   }
+}
+
+// Generator Barcode Code 128 menggunakan bwip-js (bebas dependency biner canvas)
+async function generateBarcodeBase64(text: string): Promise<string> {
+  const pngBuffer = await bwipjs.toBuffer({
+    bcid: 'code128',
+    text: text,
+    scale: 3,
+    height: 10,
+    includetext: false,
+  });
+  return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }
 
 export async function GET(request: Request) {
@@ -55,79 +46,92 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Parameter tiket diperlukan' }, { status: 400 });
     }
 
-    // Cari data pendaftaran berdasarkan nomor tiket via MySQL
     const [rows] = await pool.execute(
       'SELECT * FROM registrations WHERE ticket_no = ?',
       [tiket]
     );
     const registrations = rows as any[];
-    const registration = registrations[0];
+    const reg = registrations[0];
 
-    if (!registration) {
+    if (!reg) {
       return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
     }
 
-    if (registration.status !== 'Disetujui') {
-      return NextResponse.json({ error: 'Pendaftaran belum disetujui, kartu belum tersedia' }, { status: 403 });
+    if (reg.status !== 'Disetujui') {
+      return NextResponse.json({ error: 'Pendaftaran belum disetujui' }, { status: 403 });
     }
 
-    // 1. Generate QR Code untuk verifikasi online
+    const memberNo = reg.member_no || reg.ticket_no;
+    const barcodeDataUrl = await generateBarcodeBase64(memberNo);
+
+    // Pemformatan Tanggal Berlaku
+    let formattedEndDate = '-';
+    if (reg.end_date) {
+      const dateObj = new Date(reg.end_date);
+      formattedEndDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+    }
+
+    // Perbaikan Mapping Nama Pendek Sesuai Desain Gambar Dinas
+    const jenisAnggotaMapping: Record<string, string> = {
+      '1': 'PELAJAR',
+      '2': 'UMUM',
+      '13': 'UMUM',
+    };
+    const jenisAnggotaText = jenisAnggotaMapping[String(reg.jenis_anggota_id || reg.job_id)] || 'UMUM';
+
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || STATUS_CONFIG.SITE_URL_FALLBACK;
-    const url = `${baseUrl}/cek-status?tiket=${registration.ticket_no}`;
-    const qrCodeData = await QRCode.toDataURL(url, {
-      margin: 1,
-      width: 150,
-      errorCorrectionLevel: 'H',
-      color: {
-        dark: '#1e3a5f',
-        light: '#ffffff',
-      }
-    });
+    let pasFotoBase64: string | null = null;
 
-    // 2. Resolve URL gambar pas foto (Lokal /uploads atau Absolut dari Hostinger)
-    let pasFotoPublicUrl = '';
-    if (registration.pas_foto_url) {
-      const cleanPath = registration.pas_foto_url.trim();
+    if (reg.pas_foto_url) {
+      const cleanPath = reg.pas_foto_url.trim();
+
       if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-        pasFotoPublicUrl = cleanPath;
+        // Kasus 1: URL Absolut eksternal -> Ambil via Fetch
+        pasFotoBase64 = await getBase64FromExternalUrl(cleanPath);
       } else {
-        const imagePath = cleanPath.startsWith('/uploads/')
-          ? cleanPath
-          : `/uploads/${cleanPath}`;
-        pasFotoPublicUrl = `${baseUrl}${imagePath}`;
+        // Kasus 2: Path Lokal Server -> Baca langsung via File System (Bebas Overhead Network)
+        try {
+          const relativePath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+          // Menargetkan folder public/uploads di dalam struktur Next.js Anda
+          const localFilePath = path.join(process.cwd(), 'public', relativePath);
+
+          if (fs.existsSync(localFilePath)) {
+            const fileBuffer = fs.readFileSync(localFilePath);
+            const ext = path.extname(localFilePath).replace('.', '') || 'jpeg';
+            pasFotoBase64 = `data:image/${ext};base64,${fileBuffer.toString('base64')}`;
+          } else {
+            // Fallback jika tidak ada di folder public lokal, coba fetch via URL absolute
+            pasFotoBase64 = await getBase64FromExternalUrl(`${baseUrl}${relativePath}`);
+          }
+        } catch (fsErr) {
+          console.error('[download-card] Local FS Read Error:', fsErr);
+        }
       }
     }
 
-    // 3. Konversi gambar ke Base64 agar aman digunakan oleh @react-pdf/renderer di server
-    //    Jika gagal, pasFotoBase64 = null → kartu tetap tercetak tanpa foto
-    const pasFotoBase64 = pasFotoPublicUrl
-      ? await getBase64Image(pasFotoPublicUrl)
-      : null;
-
-    // 4. Render PDF ke stream
+    // Render PDF Stream dengan Data Terkalibrasi
     const pdfStream = await renderToStream(
       React.createElement(LibraryCardPDF, {
-        registration: {
-          fullname: registration.fullname,
-          ticketNumber: registration.ticket_no
+        member: {
+          fullname: reg.fullname || 'NAMA LENGKAP',
+          memberNo: memberNo,
+          jenisAnggota: jenisAnggotaText,
+          endDate: formattedEndDate,
         },
-        qrCodeUrl: qrCodeData,
-        pasFotoPublicUrl: pasFotoBase64 || ''
+        barcodeUrl: barcodeDataUrl,
+        pasFotoUrl: pasFotoBase64 || '',
+        baseUrl: baseUrl,
       }) as any
     );
-
-    // 5. Return PDF stream dengan header attachment
-    const memberNo = registration.ticket_no;
 
     return new NextResponse(pdfStream as any, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Kartu_Anggota_${memberNo}.pdf"`
-      }
+        'Content-Disposition': `inline; filename="Kartu_Anggota_${memberNo}.pdf"`,
+      },
     });
-
-  } catch (error: any) {
+  } catch (error) {
     console.error('[download-card] PDF Generation Error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan saat membuat dokumen PDF' }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal memproses kartu PDF' }, { status: 500 });
   }
 }

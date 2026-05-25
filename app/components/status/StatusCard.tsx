@@ -123,12 +123,27 @@ export function StatusCard({ result, qrCodeData, formatDate }: StatusCardProps) 
                     <PDFDownloadLink
                       document={
                         <LibraryCardPDF
-                          registration={{
+                          member={{
                             fullname: result.fullname || '',
-                            ticketNumber: result.ticketNumber || '',
+                            memberNo: result.memberNo || result.ticketNumber || '',
+                            jenisAnggota: (() => {
+                              const jenisAnggotaMapping: Record<string, string> = {
+                                '1': 'PELAJAR',
+                                '2': 'UMUM',
+                                '13': 'UMUM',
+                              };
+                              return jenisAnggotaMapping[String(result.jobId)] || 'UMUM';
+                            })(),
+                            endDate: result.endDate 
+                              ? (() => {
+                                  const dateObj = new Date(result.endDate);
+                                  return `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+                                })()
+                              : '-',
                           }}
-                          qrCodeUrl={qrCodeData}
-                          pasFotoPublicUrl={proxiedFotoUrl}
+                          barcodeUrl={qrCodeData}
+                          pasFotoUrl={proxiedFotoUrl}
+                          baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
                         />
                       }
                       fileName={`KARTU-PERPUS-${(result.fullname || 'UNKNOWN').toUpperCase().replace(/\s+/g, '-')}.pdf`}

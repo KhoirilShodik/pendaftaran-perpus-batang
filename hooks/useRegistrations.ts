@@ -24,6 +24,8 @@ export function useRegistrations() {
         id: r.id,
         ticketNumber: r.ticket_no,
         fullname: r.fullname,
+        memberNo: r.member_no || r.ticket_no,
+        endDate: r.end_date || null,
         identityNo: r.identity_no || '-',
         noHp: r.no_hp || '-',
         email: r.email || '-',

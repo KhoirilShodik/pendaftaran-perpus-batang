@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (ticketNo) {
       // Cari by ticket number (untuk cek status anggota)
       const [rows] = await pool.execute(
-        `SELECT ticket_no, fullname, status, created_at, approved_at, reject_reason 
+        `SELECT ticket_no, member_no, end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
         [ticketNo]
       )

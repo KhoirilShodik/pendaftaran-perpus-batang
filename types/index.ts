@@ -21,6 +21,8 @@ export interface Registration {
   maritalStatusId: string;
   pasFotoUrl?: string;
   fotoKtpUrl?: string;
+  memberNo?: string;
+  endDate?: string;
   motherMaidenName: string;
   identityTypeId: number;
   educationLevelId: number;

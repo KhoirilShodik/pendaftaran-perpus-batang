@@ -52,7 +52,10 @@ export function useStatusSearch(initialTicket: string = '') {
           createdAt: r.created_at,
           approvedAt: r.approved_at,
           rejectReason: r.reject_reason,
-          pasFotoUrl: r.pas_foto_url
+          pasFotoUrl: r.pas_foto_url,
+          memberNo: r.member_no || r.ticket_no,
+          endDate: r.end_date,
+          jobId: r.job_id
         })
         setSearchState('found')
       }

@@ -300,12 +300,27 @@ export function ActionModals({
                     <PDFDownloadLink
                       document={
                         <LibraryCardPDF
-                          registration={{
+                          member={{
                             fullname: selectedReg.fullname,
-                            ticketNumber: selectedReg.ticketNumber,
+                            memberNo: selectedReg.memberNo || selectedReg.ticketNumber,
+                            jenisAnggota: (() => {
+                              const jenisAnggotaMapping: Record<string, string> = {
+                                '1': 'PELAJAR',
+                                '2': 'UMUM',
+                                '13': 'UMUM',
+                              };
+                              return jenisAnggotaMapping[String(selectedReg.jobId)] || 'UMUM';
+                            })(),
+                            endDate: selectedReg.endDate 
+                              ? (() => {
+                                  const dateObj = new Date(selectedReg.endDate);
+                                  return `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+                                })()
+                              : '-',
                           }}
-                          qrCodeUrl={qrCodeData}
-                          pasFotoPublicUrl={proxiedFotoUrl}
+                          barcodeUrl={qrCodeData}
+                          pasFotoUrl={proxiedFotoUrl}
+                          baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
                         />
                       }
                       fileName={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
