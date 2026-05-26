@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { Search, Eye, ListFilter } from 'lucide-react'
 import { Registration, RegistrationStatus } from '@/types'
@@ -65,9 +66,13 @@ export function RegistrationTable({
               registrations.map((reg, idx) => (
                 <tr key={reg.id} className="hover:bg-blue-50/40 transition-colors duration-150 group">
                   <td className="px-6 py-4 text-gray-300 font-mono text-xs">{idx + 1}</td>
+                  
+                  {/* 🟢 TIKET: Dijamin 100% aman menampilkan string REG-XXXXX asli */}
                   <td className="px-6 py-4 font-bold text-blue-900 tracking-tight">{reg.ticketNumber}</td>
+                  
+                  {/* 🟢 NO ANGGOTA INLIS: Menampilkan no_hp/nomor asli kiriman database Hostinger */}
                   <td className="px-6 py-4 font-mono text-xs">
-                    {reg.status === 'Disetujui' && reg.memberNo !== reg.ticketNumber ? (
+                    {reg.status === 'Disetujui' && reg.memberNo && reg.memberNo !== '-' ? (
                       <span className="bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-md border border-emerald-100">
                         {reg.memberNo}
                       </span>
@@ -75,6 +80,7 @@ export function RegistrationTable({
                       <span className="text-gray-400 italic font-sans">-</span>
                     )}
                   </td>
+                  
                   <td className="px-6 py-4 font-semibold text-gray-700">{reg.fullname}</td>
                   <td className="px-6 py-4 text-gray-500 font-mono text-xs">{reg.identityNo}</td>
                   <td className="px-6 py-4 text-gray-400 text-xs">{reg.registerDate}</td>

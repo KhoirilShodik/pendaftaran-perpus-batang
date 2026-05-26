@@ -1,3 +1,4 @@
+'use client'
 import { useState, useCallback } from 'react'
 import { Registration, RegistrationStatus } from '@/types'
 import { ADMIN_CONFIG } from '@/lib/constants'
@@ -27,7 +28,7 @@ export function useRegistrations() {
         id: r.id,
         ticketNumber: r.ticket_no,             // Murni Nomor Tiket (REG-XXXXX)
         fullname: r.fullname,
-        memberNo: r.member_no || '-',          // 🟢 PERBAIKAN: Jika belum disetujui, biarkan '-' (Jangan ditimpa ticket_no)
+        memberNo: r.member_no || '-',          // Tetap murni menampung kolom member_no dari DB
         endDate: r.end_date || null,
         identityNo: r.identity_no || '-',
         noHp: r.no_hp || '-',
@@ -109,23 +110,11 @@ export function useRegistrations() {
     const json = await res.json()
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menyetujui')
 
-    // 🟢 PERBAIKAN: Tangkap member_no dan end_date dari respons backend Next.js
-    const generatedMemberNo = json.member_no || '-';
-    const generatedEndDate = json.end_date || new Date().toISOString();
+    // 🟢 PERBAIKAN UTAMA: Tarik data ulang secara langsung dari database Hostinger 
+    // agar kolom member_no asli kiriman PHP Bridge langsung masuk ke local state tanpa merusak manifest data!
+    await fetchRegistrations()
 
-    // Sync local state tanpa merusak ticketNumber
-    setRegistrations(prev => prev.map(item =>
-      item.id === reg.id 
-        ? { 
-            ...item, 
-            status: 'Disetujui', 
-            memberNo: generatedMemberNo, // 🟢 Masuk murni ke memberNo (bukan ticketNumber lagi)
-            endDate: generatedEndDate,
-            approvedAt: new Date().toISOString() 
-          } 
-        : item
-    ))
-
+    // Kirim Notifikasi Sistem Berdasarkan data asli awal
     await sendNotification({
       type: 'STATUS_APPROVED',
       email: reg.email,
@@ -157,10 +146,8 @@ export function useRegistrations() {
     const json = await res.json()
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menolak')
 
-    // Sync local state
-    setRegistrations(prev => prev.map(item =>
-      item.id === reg.id ? { ...item, status: 'Ditolak', rejectReason: reason } : item
-    ))
+    // 🟢 PERBAIKAN: Ambil ulang data fresh setelah reject
+    await fetchRegistrations()
 
     await sendNotification({
       type: 'STATUS_REJECTED',
