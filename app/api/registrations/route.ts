@@ -164,18 +164,36 @@ export async function PATCH(req: NextRequest) {
         });
 
         const textData = await bridgeResponse.text();
+        
+        // 🔍 [CONSOLE LOG 1] - Cetak respon mentah (String) dari PHP bridge ke terminal VS Code Anda
+        console.log('\n===========================================');
+        console.log('=== [DEBUG] TEXT MENTAH DARI PHP BRIDGE ===');
+        console.log(textData);
+        console.log('===========================================\n');
+
         let bridgeData: any;
 
         try {
           bridgeData = JSON.parse(textData);
+          
+          // 🔍 [CONSOLE LOG 2] - Cetak bentuk Object JSON rapi dari PHP Bridge
+          console.log('======================================');
+          console.log('=== [DEBUG] OBJECT JSON PHP BRIDGE ===');
+          console.log(JSON.stringify(bridgeData, null, 2));
+          console.log('======================================\n');
+
         } catch (jsonErr) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
         // 3. Validasi Response Sukses dari Bridge
         if (bridgeResponse.ok && bridgeData.success) {
-          // Menangkap variasi key dari JSON bridge secara aman
-          nextMemberNo = bridgeData.member_no || bridgeData.MemberNo || bridgeData.memberNo;
+          
+          // ✨ ANTI-FAILOVER LOGIC: Ambil dari key mana pun yang dilempar PHP (termasuk jika masuk ke ticket_no)
+          nextMemberNo = bridgeData.member_no || 
+                         bridgeData.MemberNo || 
+                         bridgeData.memberNo || 
+                         (bridgeData.ticket_no && bridgeData.ticket_no.startsWith('012026') ? bridgeData.ticket_no : null);
 
           if (bridgeData.end_date || bridgeData.EndDate) {
             finalEndDate = bridgeData.end_date || bridgeData.EndDate;
@@ -187,7 +205,7 @@ export async function PATCH(req: NextRequest) {
           }
 
           if (!nextMemberNo) {
-            throw new Error('Nomor anggota (member_no) tidak ditemukan dalam response bridge.');
+            throw new Error(`Nomor anggota tidak terdeteksi. Isi JSON Bridge: ${JSON.stringify(bridgeData)}`);
           }
 
           // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
