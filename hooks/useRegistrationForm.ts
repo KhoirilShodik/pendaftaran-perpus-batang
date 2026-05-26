@@ -40,9 +40,56 @@ export function useRegistrationForm() {
   const [pasFotoPreview, setPasFotoPreview] = useState<string | null>(null)
   const [fotoKtpPreview, setFotoKtpPreview] = useState<string | null>(null)
 
+  // 🟢 FITUR BARU: AUTOFILL DATA TESTING (TERMASUK DUMMY FILES)
+  const handleAutofill = () => {
+    // 1. Generate data dummy acak biar tidak bentrok KTP/Email di database
+    const randomId = Math.floor(1000 + Math.random() * 9000);
+    
+    setFormData({
+      fullname: `Tester Ahmad ${randomId}`,
+      placeOfBirth: "Batang",
+      dateOfBirth: "2000-01-01",
+      sexId: "1", // Laki-laki
+      agamaId: "1", // Islam
+      maritalStatusId: "1", // Belum Kawin
+      motherMaidenName: "Ibu Siti",
+      identityTypeId: "1", // KTP
+      identityNo: `332501${Date.now().toString().substring(3, 13)}`, // Pas 16 digit angka valid
+      address: "Jl. Veteran No. 10, Alun-alun Batang",
+      kecamatan: "Batang",
+      kelurahan: "Kauman",
+      rt: "02",
+      rw: "05",
+      city: FORM_CONFIG.CITY_DEFAULT || "Kab. Batang",
+      province: FORM_CONFIG.PROVINCE_DEFAULT || "Jawa Tengah",
+      noHp: `08123456${randomId}`, // Lolos regex PHONE
+      phone: "",
+      email: `test.user${randomId}@gmail.com`, // Lolos regex EMAIL
+      educationLevelId: "5", // S1/Diploma
+      jobId: "6", // Mahasiswa
+      institutionName: "Universitas Negeri Batang",
+      namaDarurat: "Bapak Budi",
+      telpDarurat: "085641000222",
+      statusHubunganDarurat: "Orang Tua"
+    });
+
+    // 2. Buat blob gambar tiruan biar validasi file tidak error
+    const fakeContent = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]); // Fake PNG header
+    const fakePasFoto = new File([fakeContent], `fake_avatar_${randomId}.png`, { type: 'image/png' });
+    const fakeFotoKtp = new File([fakeContent], `fake_ktp_${randomId}.png`, { type: 'image/png' });
+
+    setPasFoto(fakePasFoto);
+    setFotoKtp(fakeFotoKtp);
+    setPasFotoPreview("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"); // Placeholder preview avatar
+    setFotoKtpPreview("https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?w=300");  // Placeholder preview dokumen
+
+    // Bersihkan error jika sebelumnya ada
+    setErrors({});
+  };
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
-    const name = id // Fallback to id if name is not set
+    const name = id 
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) {
       setErrors(prev => {
@@ -57,7 +104,6 @@ export function useRegistrationForm() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Clear previous error
     setErrors(prev => {
       const newErrs = { ...prev }
       delete newErrs[type]
@@ -97,7 +143,6 @@ export function useRegistrationForm() {
   const validate = () => {
     const newErrors: FormErrors = {}
     
-    // Section 1: Data Pribadi
     if (!formData.fullname.trim()) newErrors.fullname = "Nama Lengkap wajib diisi"
     if (!formData.placeOfBirth.trim()) newErrors.placeOfBirth = "Tempat Lahir wajib diisi"
     if (!formData.dateOfBirth) newErrors.dateOfBirth = "Tanggal Lahir wajib diisi"
@@ -106,7 +151,6 @@ export function useRegistrationForm() {
     if (!formData.maritalStatusId) newErrors.maritalStatusId = "Status Perkawinan wajib dipilih"
     if (!formData.motherMaidenName.trim()) newErrors.motherMaidenName = "Nama Ibu Kandung wajib diisi"
 
-    // Section 2: Identitas
     if (!formData.identityTypeId) newErrors.identityTypeId = "Jenis Identitas wajib dipilih"
     if (!formData.identityNo.trim()) {
       newErrors.identityNo = "Nomor Identitas wajib diisi"
@@ -114,7 +158,6 @@ export function useRegistrationForm() {
       newErrors.identityNo = "Nomor KTP harus tepat 16 digit angka"
     }
 
-    // Section 3: Alamat
     if (!formData.address.trim()) newErrors.address = "Alamat wajib diisi"
     if (!formData.kecamatan.trim()) newErrors.kecamatan = "Kecamatan wajib diisi"
     if (!formData.kelurahan.trim()) newErrors.kelurahan = "Kelurahan/Desa wajib diisi"
@@ -123,7 +166,6 @@ export function useRegistrationForm() {
     if (!formData.city.trim()) newErrors.city = "Kota/Kabupaten wajib diisi"
     if (!formData.province.trim()) newErrors.province = "Provinsi wajib diisi"
 
-    // Section 4: Kontak
     if (!formData.noHp.trim()) {
       newErrors.noHp = "No. HP wajib diisi"
     } else if (!COMMON_REGEX.PHONE.test(formData.noHp)) {
@@ -135,18 +177,15 @@ export function useRegistrationForm() {
       newErrors.email = "Format email tidak valid"
     }
 
-    // Section 5: Pekerjaan/Pendidikan
     if (!formData.educationLevelId) newErrors.educationLevelId = "Pendidikan Terakhir wajib dipilih"
     if (!formData.jobId) newErrors.jobId = "Pekerjaan wajib dipilih"
     if ((formData.jobId === "5" || formData.jobId === "6") && !formData.institutionName.trim()) {
       newErrors.institutionName = "Nama Instansi/Sekolah wajib diisi untuk Pelajar/Mahasiswa"
     }
 
-    // Section 6: Berkas
     if (!pasFoto) newErrors.pasFoto = "Pas Foto wajib diupload"
     if (!fotoKtp) newErrors.fotoKtp = "Foto KTP wajib diupload"
 
-    // Section 7: Kontak Darurat
     if (!formData.namaDarurat.trim()) newErrors.namaDarurat = "Nama Kontak Darurat wajib diisi"
     if (!formData.telpDarurat.trim()) newErrors.telpDarurat = "No. Telepon Darurat wajib diisi"
     if (!formData.statusHubunganDarurat) newErrors.statusHubunganDarurat = "Hubungan wajib dipilih"
@@ -164,7 +203,6 @@ export function useRegistrationForm() {
     return true
   }
 
-  // Upload file via /api/upload (MySQL/Hostinger filesystem)
   const uploadFile = async (file: File, type: 'pas_foto' | 'foto_ktp', ticketNo: string): Promise<string> => {
     const fd = new FormData()
     fd.append('file', file)
@@ -189,13 +227,11 @@ export function useRegistrationForm() {
     try {
       const ticket = `${FORM_CONFIG.TICKET_PREFIX}${Math.random().toString(36).substring(2, 8).toUpperCase()}`
       
-      // Upload files via /api/upload
       const [pasFotoUrl, fotoKtpUrl] = await Promise.all([
         uploadFile(pasFoto!, 'pas_foto', ticket),
         uploadFile(fotoKtp!, 'foto_ktp', ticket)
       ])
 
-      // Save registration via /api/registrations
       const res = await fetch('/api/registrations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -239,7 +275,6 @@ export function useRegistrationForm() {
       setTicketNumber(ticket)
       setIsSuccess(true)
 
-      // Background notification
       fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -271,6 +306,7 @@ export function useRegistrationForm() {
     handleInputChange,
     handleFileChange,
     handleCameraCapture,
-    handleSubmit
+    handleSubmit,
+    handleAutofill // 🟢 Diekspos agar bisa dipanggil tombol di UI
   }
 }

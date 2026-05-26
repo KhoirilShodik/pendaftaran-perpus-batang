@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Loader2, Send } from 'lucide-react'
+import { Loader2, Send, Zap } from 'lucide-react'
 import { useRegistrationForm } from '@/hooks/useRegistrationForm'
 import { SuccessState } from './form/SuccessState'
 import { FileUploadSection } from './form/FileUploadSection'
@@ -25,7 +25,8 @@ export default function RegistrationForm() {
     handleInputChange,
     handleFileChange,
     handleCameraCapture,
-    handleSubmit
+    handleSubmit,
+    handleAutofill // 🟢 Panggil fungsi autofill di sini
   } = useRegistrationForm()
 
   if (isSuccess) {
@@ -33,10 +34,23 @@ export default function RegistrationForm() {
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl shadow-blue-900/5 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white rounded-3xl shadow-2xl shadow-blue-900/5 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
       <div className="p-1 bg-gradient-to-r from-[#1e3a5f] via-[#c8a84b] to-[#1e3a5f]" />
       
-      <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-10">
+      {/* 🟢 TOMBOL AUTOFILL UNTUK DEVELOPMENT / TESTING */}
+      <div className="absolute top-4 right-4 z-50">
+        <button
+          type="button"
+          onClick={handleAutofill}
+          className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md active:scale-95 transition-all duration-150"
+          title="Isi form otomatis untuk mempercepat development"
+        >
+          <Zap size={14} className="fill-white" />
+          Autofill Testing
+        </button>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-10 pt-16">
         <PersonalDataSection 
           formData={formData} 
           handleInputChange={handleInputChange} 
