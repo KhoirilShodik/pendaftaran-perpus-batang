@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const ticketNo = searchParams.get('ticket_no')
 
     if (ticketNo) {
-      // 🟢 PERBAIKAN AG (Akar Masalah 2 & 3): Menggunakan kolom asli database Hostinger (MemberNo & EndDate)
+      // Menggunakan kolom asli database Hostinger (MemberNo & EndDate)
       // lalu di-aliaskan (AS) menjadi member_no dan end_date agar dibaca mulus oleh React Hook frontend.
       const [rows] = await pool.execute(
         `SELECT ticket_no, MemberNo AS member_no, EndDate AS end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
@@ -24,9 +24,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: data[0] })
     }
 
-    // Ambil semua data untuk Dashboard Admin
-    // 🟢 PERBAIKAN AG (Akar Masalah 3): Ganti SELECT * menjadi SELECT eksplisit dengan ALIAS 
-    // agar data list di dashboard admin tidak menghasilkan nilai 'undefined' pada nomor anggota & tanggal
+    // Ambil semua data untuk Dashboard Admin dengan ALIAS yang pas
     const [rows] = await pool.execute(
       `SELECT id, ticket_no, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
               rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
@@ -131,6 +129,9 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
       }
 
+      // 🔴 KUNCI NILAI TIKET ASLI (Contoh: REG-2026-GMBLWG) SEBELUM TERTIMPA
+      const originalTicketNo = dataPendaftar.ticket_no;
+
       // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
@@ -181,7 +182,7 @@ export async function PATCH(req: NextRequest) {
 
         // 3. Jika PHP Bridge sukses memasukkan data ke INLIS Lite
         if (bridgeResponse.ok && bridgeData.success) {
-          // Antisipasi huruf besar/kecil dari PHP Bridge response
+          // Tarik member_no baru hasil generate PHP bridge lokal
           nextMemberNo = bridgeData.member_no || bridgeData.MemberNo;
 
           if (bridgeData.end_date) {
@@ -196,19 +197,19 @@ export async function PATCH(req: NextRequest) {
             throw new Error('Nomor anggota dari PHP Bridge tidak terbaca oleh API.');
           }
 
-          // 🟢 PERBAIKAN AG (Akar Masalah 1 & 2): 
-          // 1. Target diubah ke kolom fisik asli Hostinger (MemberNo & EndDate).
-          // 2. Kolom ticket_no DIHAPUS dari SQL SET agar string 'REG-*****' tidak tertimpa!
+          // 🟢 PROTEKSI FINISH: Masukkan ticket_no = ? secara eksplisit menggunakan data originalTicketNo.
+          // Query ini akan menjaga keaslian kode REG-XXXXX pendaftar dan menaruh nomor baru murni di kolom MemberNo.
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 
+                 ticket_no = ?, 
                  MemberNo = ?, 
                  EndDate = ?, 
                  approved_at = NOW(), 
                  approved_by = ?, 
                  updated_at = NOW() 
              WHERE id = ?`,
-            [nextMemberNo, finalEndDate, adminIdentity, id]
+            [originalTicketNo, nextMemberNo, finalEndDate, adminIdentity, id]
           );
 
         } else {
