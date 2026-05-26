@@ -1,7 +1,7 @@
 import React from 'react'
-import { 
-  X, User, MapPin, Phone, Mail, School, 
-  CheckCircle2, XCircle, Download, Loader2, 
+import {
+  X, User, MapPin, Phone, Mail, School,
+  CheckCircle2, XCircle, Download, Loader2,
   Info, Heart, ShieldAlert, CreditCard, Calendar, Eye
 } from 'lucide-react'
 import { Registration } from '@/types'
@@ -45,14 +45,15 @@ export function ActionModals({
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white/95 backdrop-blur-md w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl flex flex-col border border-white/20"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header Modal */}
         <div className="p-6 border-b flex justify-between items-center bg-gray-50/50 rounded-t-3xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-xl text-blue-900">
@@ -63,15 +64,17 @@ export function ActionModals({
               <p className="text-xs font-mono text-gray-500 tracking-wider uppercase">{selectedReg.ticketNumber}</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-gray-200/50 rounded-full transition-all duration-200 active:scale-90 text-gray-500"
           >
             <X size={24} />
           </button>
         </div>
 
+        {/* Konten Utama */}
         <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Kolom Kiri: Data Teks */}
           <div className="space-y-8">
             <section>
               <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
@@ -140,14 +143,15 @@ export function ActionModals({
             </section>
           </div>
 
+          {/* Kolom Kanan: Gambar Lampiran & Keterangan Tolak */}
           <div className="space-y-8">
             <section>
               <h3 className="text-[10px] font-bold text-blue-900/40 uppercase tracking-[0.2em] mb-4">Berkas Lampiran</h3>
-              
+
               {/* Pas Foto - Vertikal */}
               <div className="mb-4">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
-                  <User size={10} /> Pas Foto 
+                  <User size={10} /> Pas Foto
                   <span className="text-gray-300 font-normal">(Vertikal)</span>
                 </p>
                 <div className="relative group overflow-hidden rounded-2xl border-2 border-gray-100 bg-gray-50 aspect-[3/4] max-w-[160px]">
@@ -158,7 +162,6 @@ export function ActionModals({
                         alt="Pas Foto"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      {/* Overlay click to view */}
                       <a
                         href={resolveImageUrl(selectedReg.pasFotoUrl) || '#'}
                         target="_blank"
@@ -195,7 +198,6 @@ export function ActionModals({
                         alt="Foto KTP"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      {/* Overlay click to view */}
                       <a
                         href={resolveImageUrl(selectedReg.fotoKtpUrl) || '#'}
                         target="_blank"
@@ -219,6 +221,7 @@ export function ActionModals({
               </div>
             </section>
 
+            {/* Jika status saat ini ditolak, tampilkan alasannya */}
             {selectedReg.status === 'Ditolak' && (
               <div className="p-5 bg-rose-50 border border-rose-100 rounded-2xl flex gap-4 items-start">
                 <div className="p-2 bg-rose-100 rounded-lg text-rose-600 shrink-0">
@@ -233,16 +236,19 @@ export function ActionModals({
           </div>
         </div>
 
+        {/* Footer Modal: Tombol Aksi Bersyarat */}
         <div className="p-6 border-t bg-gray-50/50 rounded-b-3xl">
+
+          {/* KONDISI 1: Menunggu Persetujuan (Form Penolakan Belum Terbuka) */}
           {selectedReg.status === 'Menunggu' && !showRejectForm && (
             <div className="flex gap-4">
-              <button 
+              <button
                 onClick={() => setShowRejectForm(true)}
                 className="flex-1 py-3.5 bg-white border border-rose-200 text-rose-600 font-bold rounded-2xl hover:bg-rose-50 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 shadow-sm shadow-rose-100/50"
               >
                 <XCircle size={18} /> TOLAK
               </button>
-              <button 
+              <button
                 onClick={() => onApprove(selectedReg)}
                 className="flex-[2] py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold rounded-2xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-green-200"
               >
@@ -251,12 +257,13 @@ export function ActionModals({
             </div>
           )}
 
+          {/* KONDISI 2: Form Pengisian Alasan Penolakan Sedang Terbuka */}
           {showRejectForm && (
             <div className="animate-in slide-in-from-bottom-4 duration-300">
               <label htmlFor="reject-textarea" className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                 <ShieldAlert size={16} className="text-rose-500" /> Alasan Penolakan:
               </label>
-              <textarea 
+              <textarea
                 id="reject-textarea"
                 className="w-full border-2 border-rose-50 rounded-2xl p-4 text-sm focus:border-rose-300 outline-none mb-4 bg-white transition-all focus:ring-4 focus:ring-rose-50"
                 rows={3}
@@ -265,16 +272,16 @@ export function ActionModals({
                 onChange={(e) => setRejectReason(e.target.value)}
               />
               <div className="flex gap-3 justify-end">
-                <button 
-                  onClick={() => setShowRejectForm(false)} 
+                <button
+                  onClick={() => setShowRejectForm(false)}
                   className="px-6 py-2.5 text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   Batal
                 </button>
-                <button 
+                <button
                   onClick={onReject}
                   disabled={!rejectReason.trim()}
-                  className={`px-8 py-2.5 text-sm font-bold text-white rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-2 ${!rejectReason.trim() ? 'bg-gray-300' : 'bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200'}`}
+                  className={`px-8 py-2.5 text-sm font-bold text-white rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-2 ${!rejectReason.trim() ? 'bg-gray-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200'}`}
                 >
                   <XCircle size={16} /> KONFIRMASI TOLAK
                 </button>
@@ -282,80 +289,90 @@ export function ActionModals({
             </div>
           )}
 
+          {/* KONDISI 3: Pendaftaran Sudah Disetujui */}
           {selectedReg.status === 'Disetujui' && (
-            <div className="w-full">
-              {qrCodeData ? (
-                (() => {
-                  // Ambil resolusi path foto asli dari database (apakah dia full url atau path relative /uploads)
-                  const originalFotoUrl = selectedReg.pasFotoUrl 
-                    ? (selectedReg.pasFotoUrl.startsWith('http') ? selectedReg.pasFotoUrl : resolveImageUrl(selectedReg.pasFotoUrl))
-                    : '';
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <div className="flex-1">
+                {qrCodeData ? (
+                  (() => {
+                    const originalFotoUrl = selectedReg.pasFotoUrl
+                      ? (selectedReg.pasFotoUrl.startsWith('http') ? selectedReg.pasFotoUrl : resolveImageUrl(selectedReg.pasFotoUrl))
+                      : '';
 
-                  // Alirkan lewat Proxy Route lokal agar bebas CORS di browser admin
-                  const proxiedFotoUrl = originalFotoUrl 
-                    ? `/api/proxy-image?url=${encodeURIComponent(originalFotoUrl)}` 
-                    : '';
+                    const proxiedFotoUrl = originalFotoUrl
+                      ? `/api/proxy-image?url=${encodeURIComponent(originalFotoUrl)}`
+                      : '';
 
-                  return (
-                    <PDFDownloadLink
-                      document={
-                        <LibraryCardPDF
-                          member={{
-                            fullname: selectedReg.fullname,
-                            memberNo: selectedReg.memberNo || selectedReg.ticketNumber,
-                            jenisAnggota: (() => {
-                              const jenisAnggotaMapping: Record<string, string> = {
-                                '1': 'PELAJAR',
-                                '2': 'UMUM',
-                                '13': 'UMUM',
-                              };
-                              return jenisAnggotaMapping[String(selectedReg.jobId)] || 'UMUM';
-                            })(),
-                            endDate: selectedReg.endDate 
-                              ? (() => {
+                    return (
+                      <PDFDownloadLink
+                        document={
+                          <LibraryCardPDF
+                            member={{
+                              fullname: selectedReg.fullname,
+                              memberNo: selectedReg.memberNo || selectedReg.ticketNumber,
+                              jenisAnggota: (() => {
+                                const jenisAnggotaMapping: Record<string, string> = {
+                                  '1': 'PELAJAR',
+                                  '2': 'UMUM',
+                                  '13': 'UMUM',
+                                };
+                                return jenisAnggotaMapping[String(selectedReg.jobId)] || 'UMUM';
+                              })(),
+                              endDate: selectedReg.endDate
+                                ? (() => {
                                   const dateObj = new Date(selectedReg.endDate);
                                   return `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
                                 })()
-                              : '-',
-                          }}
-                          barcodeUrl={qrCodeData}
-                          pasFotoUrl={proxiedFotoUrl}
-                          baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
-                        />
-                      }
-                      fileName={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
-                      className="w-full py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-95 transition-all duration-200 active:scale-95 shadow-xl shadow-blue-200"
-                    >
-                      {({ loading }) => loading ? (
-                        <>
-                          <Loader2 className="animate-spin" size={20} />
-                          MEMPROSES DATA KARTU...
-                        </>
-                      ) : (
-                        <>
-                          <Download size={20} /> UNDUH KARTU DIGITAL
-                        </>
-                      )}
-                    </PDFDownloadLink>
-                  );
-                })()
-              ) : (
-                <div className="w-full py-4 bg-gray-100 text-gray-400 font-bold rounded-2xl flex items-center justify-center gap-3">
-                  <Loader2 className="animate-spin" size={20} />
-                  MEMPROSES DATA...
-                </div>
-              )}
+                                : '-',
+                            }}
+                            barcodeUrl={qrCodeData}
+                            pasFotoUrl={proxiedFotoUrl}
+                            baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
+                          />
+                        }
+                        fileName={`KARTU-PERPUS-${selectedReg.fullname.toUpperCase().replace(/\s+/g, '-')}.pdf`}
+                        className="w-full py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-95 transition-all duration-200 active:scale-95 shadow-xl shadow-blue-200"
+                      >
+                        {({ loading }) => loading ? (
+                          <>
+                            <Loader2 className="animate-spin" size={20} />
+                            MEMPROSES DATA KARTU...
+                          </>
+                        ) : (
+                          <>
+                            <Download size={20} /> UNDUH KARTU DIGITAL
+                          </>
+                        )}
+                      </PDFDownloadLink>
+                    );
+                  })()
+                ) : (
+                  <div className="w-full py-4 bg-gray-100 text-gray-400 font-bold rounded-2xl flex items-center justify-center gap-3">
+                    <Loader2 className="animate-spin" size={20} />
+                    MEMPROSES DATA...
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={onClose}
+                className="py-4 px-8 bg-gray-200/60 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all duration-200 active:scale-95 sm:w-auto w-full text-center"
+              >
+                TUTUP
+              </button>
             </div>
           )}
 
-          {selectedReg.status !== 'Menunggu' && (
-            <button 
+          {/* KONDISI 4: Pendaftaran Ditolak (Hanya Menampilkan Tombol Tutup Bersih) */}
+          {selectedReg.status === 'Ditolak' && (
+            <button
               onClick={onClose}
-              className="w-full mt-4 py-3 bg-gray-200/50 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-95"
+              className="w-full py-3.5 bg-gray-200/50 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-95 text-center"
             >
               TUTUP
             </button>
           )}
+
         </div>
       </div>
     </div>

@@ -3,12 +3,11 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { renderToStream } from '@react-pdf/renderer';
 import { LibraryCardPDF } from '@/app/components/LibraryCardPDF';
-import bwipjs from 'bwip-js';
+import bwipjs from 'bwip-js'; // Pustaka JS murni, aman untuk Vercel
 import { STATUS_CONFIG } from '@/lib/constants';
 import fs from 'fs';
 import path from 'path';
 
-// Fungsi download gambar khusus untuk external URL (misal dari Hostinger Cloud)
 async function getBase64FromExternalUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
@@ -25,16 +24,23 @@ async function getBase64FromExternalUrl(url: string): Promise<string | null> {
   }
 }
 
-// Generator Barcode Code 128 menggunakan bwip-js (bebas dependency biner canvas)
+// Generator Barcode Code 128 Berbasis Asinkron (Pure JS - bwip-js)
 async function generateBarcodeBase64(text: string): Promise<string> {
-  const pngBuffer = await bwipjs.toBuffer({
-    bcid: 'code128',
-    text: text,
-    scale: 3,
-    height: 10,
-    includetext: false,
+  return new Promise((resolve, reject) => {
+    bwipjs.toBuffer({
+      bcid: 'code128',       // Tipe barcode Code 128 standar perpustakaan
+      text: text,            // Isi teks nomor anggota
+      scale: 3,              // Skala resolusi tinggi agar tajam saat di-scan
+      height: 10,            // Tinggi bar proporsional
+      includetext: false,    // Teks nomor diatur manual di layout react-pdf
+    }, (err, pngBuffer) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(`data:image/png;base64,${pngBuffer.toString('base64')}`);
+      }
+    });
   });
-  return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }
 
 export async function GET(request: Request) {
@@ -62,16 +68,16 @@ export async function GET(request: Request) {
     }
 
     const memberNo = reg.member_no || reg.ticket_no;
+
+    // Memanggil generator barcode baru yang aman untuk platform serverless
     const barcodeDataUrl = await generateBarcodeBase64(memberNo);
 
-    // Pemformatan Tanggal Berlaku
     let formattedEndDate = '-';
     if (reg.end_date) {
       const dateObj = new Date(reg.end_date);
       formattedEndDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
     }
 
-    // Perbaikan Mapping Nama Pendek Sesuai Desain Gambar Dinas
     const jenisAnggotaMapping: Record<string, string> = {
       '1': 'PELAJAR',
       '2': 'UMUM',
@@ -86,13 +92,10 @@ export async function GET(request: Request) {
       const cleanPath = reg.pas_foto_url.trim();
 
       if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-        // Kasus 1: URL Absolut eksternal -> Ambil via Fetch
         pasFotoBase64 = await getBase64FromExternalUrl(cleanPath);
       } else {
-        // Kasus 2: Path Lokal Server -> Baca langsung via File System (Bebas Overhead Network)
         try {
           const relativePath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-          // Menargetkan folder public/uploads di dalam struktur Next.js Anda
           const localFilePath = path.join(process.cwd(), 'public', relativePath);
 
           if (fs.existsSync(localFilePath)) {
@@ -100,7 +103,6 @@ export async function GET(request: Request) {
             const ext = path.extname(localFilePath).replace('.', '') || 'jpeg';
             pasFotoBase64 = `data:image/${ext};base64,${fileBuffer.toString('base64')}`;
           } else {
-            // Fallback jika tidak ada di folder public lokal, coba fetch via URL absolute
             pasFotoBase64 = await getBase64FromExternalUrl(`${baseUrl}${relativePath}`);
           }
         } catch (fsErr) {
@@ -109,7 +111,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Render PDF Stream dengan Data Terkalibrasi
     const pdfStream = await renderToStream(
       React.createElement(LibraryCardPDF, {
         member: {

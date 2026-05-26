@@ -107,86 +107,101 @@ export async function PATCH(req: NextRequest) {
     }
 
     let nextMemberNo = null;
+    let finalEndDate = null;
 
     if (status === 'Disetujui') {
-      // 1. Update status pendaftaran menjadi Disetujui di database web Hostinger
-      await pool.execute(
-        `UPDATE registrations SET status = 'Disetujui', approved_at = NOW(), approved_by = ?, updated_at = NOW() WHERE id = ?`,
-        [adminIdentity, id]
-      )
-
-      // 2. Ambil data lengkap pendaftar tersebut dari database web Hostinger
+      // 1. Ambil data lengkap pendaftar tersebut dari database web Hostinger sebelum dikirim ke bridge
       const [rows] = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
       )
       const dataPendaftar = (rows as any[])[0]
 
-      if (dataPendaftar) {
-        // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
-        const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member'; try {
-          // 3. Kirim data pendaftar ke INLIS Lite via PHP Bridge (Ditambahkan bypass header LocalTunnel)
-          const bridgeResponse = await fetch(BRIDGE_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': process.env.BRIDGE_API_KEY || 'dispuspa-batang-secret-2026',
-              'bypass-tunnel-reminder': 'true',      // ← Solusi Bypass Halaman Interstitial Loca.lt
-              'User-Agent': 'NextJS-PerpusBatang/1.0'  // ← Menyamar sebagai Client Aman terpercaya
-            },
-            // SANGAT DISARANKAN: Gunakan snake_case agar sinkron dengan PHP
-            body: JSON.stringify({
-              fullname: dataPendaftar.fullname,
-              identity_no: dataPendaftar.identity_no,
-              place_of_birth: dataPendaftar.place_of_birth,
-              date_of_birth: dataPendaftar.date_of_birth,
-              address: dataPendaftar.address,
-              kecamatan: dataPendaftar.kecamatan,
-              kelurahan: dataPendaftar.kelurahan,
-              rt: dataPendaftar.rt,
-              rw: dataPendaftar.rw,
-              no_hp: dataPendaftar.no_hp,
-              email: dataPendaftar.email,
-              mother_maiden_name: dataPendaftar.mother_maiden_name, // Pastikan di database key-nya ini
-              nama_darurat: dataPendaftar.nama_darurat,
-              telp_darurat: dataPendaftar.telp_darurat,
-              status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
-              institution_name: dataPendaftar.institution_name,
-              photo_url: dataPendaftar.pas_foto_url,
-              jenis_anggota_id: 13,
-              identity_type_id: 1,
-              education_level_id: dataPendaftar.education_level_id || 1,
-              sex_id: dataPendaftar.sex_id || 1,
-              agama_id: dataPendaftar.agama_id || 1
-            }),
-          });
+      if (!dataPendaftar) {
+        return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
+      }
 
-          // Mengantisipasi jika teks balasan masih kotor / gagal diparse ke json
-          const textData = await bridgeResponse.text();
-          let bridgeData: any;
+      // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
+      const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
-          try {
-            bridgeData = JSON.parse(textData);
-          } catch (jsonErr) {
-            throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
-          }
+      try {
+        // 2. Kirim data pendaftar ke INLIS Lite via PHP Bridge
+        const bridgeResponse = await fetch(BRIDGE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': process.env.BRIDGE_API_KEY || 'dispuspa-batang-secret-2026',
+            'bypass-tunnel-reminder': 'true',       // ← Solusi Bypass Halaman Interstitial Loca.lt / Cloudflare Tunnel
+            'User-Agent': 'NextJS-PerpusBatang/1.0'
+          },
+          body: JSON.stringify({
+            fullname: dataPendaftar.fullname,
+            identity_no: dataPendaftar.identity_no,
+            place_of_birth: dataPendaftar.place_of_birth,
+            date_of_birth: dataPendaftar.date_of_birth,
+            address: dataPendaftar.address,
+            kecamatan: dataPendaftar.kecamatan,
+            kelurahan: dataPendaftar.kelurahan,
+            rt: dataPendaftar.rt,
+            rw: dataPendaftar.rw,
+            no_hp: dataPendaftar.no_hp,
+            email: dataPendaftar.email,
+            mother_maiden_name: dataPendaftar.mother_maiden_name,
+            nama_darurat: dataPendaftar.nama_darurat,
+            telp_darurat: dataPendaftar.telp_darurat,
+            status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
+            institution_name: dataPendaftar.institution_name,
+            photo_url: dataPendaftar.pas_foto_url,
+            jenis_anggota_id: dataPendaftar.job_id === 1 ? 1 : 13, // Menyesuaikan dinamis jika Pelajar/Umum
+            identity_type_id: dataPendaftar.identity_type_id || 1,
+            education_level_id: dataPendaftar.education_level_id || 1,
+            sex_id: dataPendaftar.sex_id || 1,
+            agama_id: dataPendaftar.agama_id || 1
+          }),
+        });
 
-          // 4. Jika PHP Bridge sukses memasukkan data ke INLIS Lite, ambil nomor anggota barunya
-          if (bridgeResponse.ok && bridgeData.success) {
-            nextMemberNo = bridgeData.member_no;
+        const textData = await bridgeResponse.text();
+        let bridgeData: any;
 
-            // 5. Timpa nilai ticket_no lama dengan Nomor Anggota resmi dari INLIS Lite
-            await pool.execute(
-              `UPDATE registrations SET ticket_no = ?, updated_at = NOW() WHERE id = ?`,
-              [nextMemberNo, id]
-            );
-          } else {
-            console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
-          }
-        } catch (bridgeErr: any) {
-          console.error('Gagal terhubung ke PHP Bridge (Pastikan XAMPP/Bridge menyala):', bridgeErr.message);
-          return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
+        try {
+          bridgeData = JSON.parse(textData);
+        } catch (jsonErr) {
+          throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
+
+        // 3. Jika PHP Bridge sukses memasukkan data ke INLIS Lite, ambil data responnya
+        if (bridgeResponse.ok && bridgeData.success) {
+          nextMemberNo = bridgeData.member_no;
+
+          // Antisipasi jika PHP bridge mengembalikan tanggal berlaku otomatis, jika tidak set fallback +3 tahun
+          if (bridgeData.end_date) {
+            finalEndDate = bridgeData.end_date;
+          } else {
+            const now = new Date();
+            now.setFullYear(now.getFullYear() + 3); // Berlaku 3 Tahun standar INLIS
+            finalEndDate = now.toISOString().split('T')[0];
+          }
+
+          // 4. UPDATE Status & Simpan MemberNo + EndDate ke database web. TICKET_NO Tetap pakai REG asli!
+          await pool.execute(
+            `UPDATE registrations 
+             SET status = 'Disetujui', 
+                 member_no = ?, 
+                 end_date = ?, 
+                 approved_at = NOW(), 
+                 approved_by = ?, 
+                 updated_at = NOW() 
+             WHERE id = ?`,
+            [nextMemberNo, finalEndDate, adminIdentity, id]
+          );
+
+        } else {
+          console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
+          return NextResponse.json({ error: bridgeData.error || 'Gagal sinkronisasi data ke INLIS Lite' }, { status: 422 });
+        }
+      } catch (bridgeErr: any) {
+        console.error('Gagal terhubung ke PHP Bridge:', bridgeErr.message);
+        return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
       }
 
     } else if (status === 'Ditolak') {
