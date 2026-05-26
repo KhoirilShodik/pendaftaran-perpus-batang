@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
 // ============================================================
-// GET — Ambil Semua Registrations (Untuk Dashboard Admin / Cek Status)
+// GET — Ambil Semua Registrations (REKOMENDASI PERBAIKAN)
 // ============================================================
 export async function GET(req: NextRequest) {
   try {
@@ -10,9 +10,10 @@ export async function GET(req: NextRequest) {
     const ticketNo = searchParams.get('ticket_no')
 
     if (ticketNo) {
-      // Cari by ticket number (untuk cek status anggota)
+      // 🟢 PERBAIKAN: Gunakan nama kolom asli (MemberNo & EndDate) lalu aliaskan (AS) ke huruf kecil
+      // agar React Hook frontend (r.member_no) tidak mengalami error / undefined.
       const [rows] = await pool.execute(
-        `SELECT ticket_no, member_no, end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
+        `SELECT ticket_no, MemberNo AS member_no, EndDate AS end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
         [ticketNo]
       )
@@ -186,8 +187,8 @@ export async function PATCH(req: NextRequest) {
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 
-                 member_no = ?, 
-                 end_date = ?, 
+                 MemberNo = ?, 
+                 EndDate = ?, 
                  approved_at = NOW(), 
                  approved_by = ?, 
                  updated_at = NOW() 
