@@ -129,9 +129,6 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
       }
 
-      // 🔴 KUNCI NILAI TIKET ASLI (Contoh: REG-2026-GMBLWG) SEBELUM TERTIMPA
-      const originalTicketNo = dataPendaftar.ticket_no;
-
       // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
@@ -197,19 +194,18 @@ export async function PATCH(req: NextRequest) {
             throw new Error('Nomor anggota dari PHP Bridge tidak terbaca oleh API.');
           }
 
-          // 🟢 PROTEKSI FINISH: Masukkan ticket_no = ? secara eksplisit menggunakan data originalTicketNo.
-          // Query ini akan menjaga keaslian kode REG-XXXXX pendaftar dan menaruh nomor baru murni di kolom MemberNo.
+          // 🟢 FIX: ticket_no dihapus dari klausa SET agar kode REG-XXXX pendaftar tetap murni tidak berubah.
+          // Parameter array di bawah disesuaikan urutannya dengan jumlah tanda tanya (?)
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 
-                 ticket_no = ?, 
                  MemberNo = ?, 
                  EndDate = ?, 
                  approved_at = NOW(), 
                  approved_by = ?, 
                  updated_at = NOW() 
              WHERE id = ?`,
-            [originalTicketNo, nextMemberNo, finalEndDate, adminIdentity, id]
+            [nextMemberNo, finalEndDate, adminIdentity, id]
           );
 
         } else {
