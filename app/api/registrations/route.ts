@@ -95,6 +95,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json()
     const { id, status, reject_reason } = body
 
+    // 1. Audit Trail: Ambil Identitas Admin dari Cookie JWT
     const token = req.cookies.get('admin_token')?.value;
     let adminIdentity = 'admin.perpus';
 
@@ -103,15 +104,16 @@ export async function PATCH(req: NextRequest) {
         const { jwtVerify } = await import('jose');
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
         const { payload } = await jwtVerify(token, secret);
-        adminIdentity = (payload.email as string) || adminIdentity;
+        adminIdentity = (payload.email as string) || (payload.username as string) || adminIdentity;
       } catch (e) {
-        console.error('Invalid token for audit trail');
+        console.error('Invalid token for audit trail, using default.');
       }
     }
 
     let nextMemberNo = null;
     let finalEndDate = null;
 
+    // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
       const [rows] = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
@@ -126,6 +128,7 @@ export async function PATCH(req: NextRequest) {
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       try {
+        // 2. Kirim Data Lengkap ke PHP Bridge (INLIS Lite Lokal)
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
           headers: {
@@ -152,7 +155,7 @@ export async function PATCH(req: NextRequest) {
             status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
             institution_name: dataPendaftar.institution_name,
             photo_url: dataPendaftar.pas_foto_url,
-            jenis_anggota_id: dataPendaftar.job_id === 1 ? 1 : 13,
+            jenis_anggota_id: Number(dataPendaftar.job_id) === 1 ? 1 : 13,
             identity_type_id: dataPendaftar.identity_type_id || 1,
             education_level_id: dataPendaftar.education_level_id || 1,
             sex_id: dataPendaftar.sex_id || 1,
@@ -169,22 +172,25 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
+        // 3. Validasi Response Sukses dari Bridge
         if (bridgeResponse.ok && bridgeData.success) {
-          nextMemberNo = bridgeData.member_no || bridgeData.MemberNo;
+          // Menangkap variasi key dari JSON bridge secara aman
+          nextMemberNo = bridgeData.member_no || bridgeData.MemberNo || bridgeData.memberNo;
 
-          if (bridgeData.end_date) {
-            finalEndDate = bridgeData.end_date;
+          if (bridgeData.end_date || bridgeData.EndDate) {
+            finalEndDate = bridgeData.end_date || bridgeData.EndDate;
           } else {
+            // Fallback: Jika bridge tidak melempar tanggal, generate otomatis (+3 tahun)
             const now = new Date();
             now.setFullYear(now.getFullYear() + 3);
             finalEndDate = now.toISOString().split('T')[0];
           }
 
           if (!nextMemberNo) {
-            throw new Error('Nomor anggota dari PHP Bridge tidak terbaca oleh API.');
+            throw new Error('Nomor anggota (member_no) tidak ditemukan dalam response bridge.');
           }
 
-          // 🔒 MUTLAK AMAN: Hanya update MemberNo dan EndDate berdasarkan ID pendaftaran.
+          // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 
@@ -206,13 +212,20 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
       }
 
+    // KONDISI B: JIKA STATUS DITOLAK
     } else if (status === 'Ditolak') {
       await pool.execute(
-        `UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?`,
-        [reject_reason, adminIdentity, id]
+        `UPDATE registrations 
+         SET status = 'Ditolak', 
+             reject_reason = ?, 
+             approved_by = ?, 
+             updated_at = NOW() 
+         WHERE id = ?`,
+        [reject_reason || 'Persyaratan tidak sesuai', adminIdentity, id]
       )
     }
 
+    // 5. Kembalikan Response Sukses ke Frontend Dashboard
     return NextResponse.json({
       success: true,
       member_no: nextMemberNo,
