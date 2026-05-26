@@ -93,37 +93,42 @@ export function useRegistrations() {
   // APPROVE — Setujui Pendaftaran & Sinkronisasi Real-time
   // ============================================================
   const handleApprove = async (reg: Registration) => {
-    if (reg.email === '-' || !reg.email.includes('@')) {
-      throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
-    }
-
-    const res = await fetch('/api/registrations', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: reg.id,
-        status: 'Disetujui',
-        approved_by: 'admin.perpus'
-      })
-    })
-
-    const json = await res.json()
-    if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menyetujui')
-
-    // 🟢 PERBAIKAN UTAMA: Tarik data ulang secara langsung dari database Hostinger 
-    // agar kolom member_no asli kiriman PHP Bridge langsung masuk ke local state tanpa merusak manifest data!
-    await fetchRegistrations()
-
-    // Kirim Notifikasi Sistem Berdasarkan data asli awal
-    await sendNotification({
-      type: 'STATUS_APPROVED',
-      email: reg.email,
-      fullname: reg.fullname,
-      ticketNumber: reg.ticketNumber
-    })
-
-    setSelectedReg(null)
+  if (reg.email === '-' || !reg.email.includes('@')) {
+    throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
   }
+
+  const res = await fetch('/api/registrations', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: reg.id,
+      status: 'Disetujui',
+      approved_by: 'admin.perpus'
+    })
+  })
+
+  const json = await res.json()
+
+  console.log('================================')
+  console.log('DEBUG APPROVE RESPONSE')
+  console.log(json)
+  console.log('================================')
+
+  if (!res.ok || !json.success) {
+    throw new Error(json.error || 'Gagal menyetujui')
+  }
+
+  await fetchRegistrations()
+
+  await sendNotification({
+    type: 'STATUS_APPROVED',
+    email: reg.email,
+    fullname: reg.fullname,
+    ticketNumber: reg.ticketNumber
+  })
+
+  setSelectedReg(null)
+}
 
   // ============================================================
   // REJECT — Tolak Pendaftaran
