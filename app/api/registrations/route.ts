@@ -192,8 +192,8 @@ export async function PATCH(req: NextRequest) {
           // ✨ ANTI-FAILOVER LOGIC: Ambil nomor dari struktur key apa pun
           nextMemberNo = bridgeData.member_no || 
                          bridgeData.MemberNo || 
-                         bridgeData.memberNo || 
-                         (bridgeData.ticket_no && bridgeData.ticket_no.startsWith('012026') ? bridgeData.ticket_no : null);
+                         bridgeData.memberNo 
+                        ;
 
           if (bridgeData.end_date || bridgeData.EndDate) {
             finalEndDate = bridgeData.end_date || bridgeData.EndDate;
@@ -220,25 +220,26 @@ export async function PATCH(req: NextRequest) {
           console.log('======================================');
 
           // 4. DISESUAIKAN: Eksekusi UPDATE Kolom member_no & end_date (huruf kecil) ke Hostinger
-          await pool.execute(
-  `UPDATE registrations 
-   SET 
-      status = ?,
-      member_no = ?,
-      end_date = ?,
-      approved_at = NOW(),
-      approved_by = ?,
-      updated_at = NOW()
-   WHERE id = ?`,
+         await pool.query(
+  `
+  UPDATE registrations
+  SET
+    status = ?,
+    member_no = ?,
+    end_date = ?,
+    approved_at = NOW(),
+    approved_by = ?,
+    updated_at = NOW()
+  WHERE id = ?
+  `,
   [
     'Disetujui',
-    String(nextMemberNo),
-    String(finalEndDate),
-    String(adminIdentity),
-    Number(id)
+    nextMemberNo,
+    finalEndDate,
+    adminIdentity,
+    id
   ]
 )
-
 const [debugCheck] = await pool.execute(
   `SELECT id, ticket_no, member_no 
    FROM registrations 
