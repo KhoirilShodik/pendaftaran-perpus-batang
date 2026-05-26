@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
 // ============================================================
-// GET — Ambil Semua Registrations (Untuk Dashboard Admin / Cek Status)
+// GET — Ambil Semua Registrations (Untuk Dashboard Admin)
 // ============================================================
 export async function GET(req: NextRequest) {
   try {
@@ -10,10 +10,8 @@ export async function GET(req: NextRequest) {
     const ticketNo = searchParams.get('ticket_no')
 
     if (ticketNo) {
-      // Menggunakan kolom asli database Hostinger (MemberNo & EndDate)
-      // lalu di-aliaskan (AS) menjadi member_no dan end_date agar dibaca mulus oleh React Hook frontend.
       const [rows] = await pool.execute(
-        `SELECT ticket_no, MemberNo AS member_no, EndDate AS end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
+        `SELECT ticket_no, MemberNo, EndDate, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
         [ticketNo]
       )
@@ -24,14 +22,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: data[0] })
     }
 
-    // Ambil semua data untuk Dashboard Admin dengan ALIAS yang pas
+    // Ambil data murni tanpa alias yang merusak pemetaan objek
     const [rows] = await pool.execute(
-      `SELECT id, ticket_no, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
+      `SELECT id, ticket_no, MemberNo, EndDate, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
               rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
               marital_status_id, job_id, institution_name, mother_maiden_name, email, no_hp, phone, 
               agama_id, nama_darurat, telp_darurat, status_hubungan_darurat, pas_foto_url, foto_ktp_url, 
-              status, reject_reason, created_at, updated_at, approved_at, approved_by, 
-              MemberNo AS member_no, EndDate AS end_date 
+              status, reject_reason, created_at, updated_at, approved_at, approved_by
        FROM registrations 
        ORDER BY created_at DESC`
     )
@@ -49,7 +46,6 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-
     const {
       ticket_no, fullname, place_of_birth, date_of_birth,
       address, kecamatan, kelurahan, rt, rw, city, province,
@@ -99,7 +95,6 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json()
     const { id, status, reject_reason } = body
 
-    // Ambil identitas admin dari JWT cookie untuk audit trail log
     const token = req.cookies.get('admin_token')?.value;
     let adminIdentity = 'admin.perpus';
 
@@ -118,7 +113,6 @@ export async function PATCH(req: NextRequest) {
     let finalEndDate = null;
 
     if (status === 'Disetujui') {
-      // 1. Ambil data lengkap pendaftar dari database web Hostinger
       const [rows] = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
@@ -129,11 +123,9 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
       }
 
-      // Alamat URL API Bridge lokal di komputer/server perpustakaan Batang
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       try {
-        // 2. Kirim data pendaftar ke INLIS Lite via PHP Bridge
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
           headers: {
@@ -177,16 +169,14 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
-        // 3. Jika PHP Bridge sukses memasukkan data ke INLIS Lite
         if (bridgeResponse.ok && bridgeData.success) {
-          // Tarik member_no baru hasil generate PHP bridge lokal
           nextMemberNo = bridgeData.member_no || bridgeData.MemberNo;
 
           if (bridgeData.end_date) {
             finalEndDate = bridgeData.end_date;
           } else {
             const now = new Date();
-            now.setFullYear(now.getFullYear() + 3); // Standar 3 Tahun INLIS
+            now.setFullYear(now.getFullYear() + 3);
             finalEndDate = now.toISOString().split('T')[0];
           }
 
@@ -194,8 +184,7 @@ export async function PATCH(req: NextRequest) {
             throw new Error('Nomor anggota dari PHP Bridge tidak terbaca oleh API.');
           }
 
-          // 🟢 FIX: ticket_no dihapus dari klausa SET agar kode REG-XXXX pendaftar tetap murni tidak berubah.
-          // Parameter array di bawah disesuaikan urutannya dengan jumlah tanda tanya (?)
+          // 🔒 MUTLAK AMAN: Hanya update MemberNo dan EndDate berdasarkan ID pendaftaran.
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 

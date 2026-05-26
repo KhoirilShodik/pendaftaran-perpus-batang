@@ -26,10 +26,10 @@ export function useRegistrations() {
       const data = json.data || []
       const mapped = data.map((r: any) => ({
         id: r.id,
-        ticketNumber: r.ticket_no,             // Murni Nomor Tiket (REG-XXXXX)
+        ticketNumber: r.ticket_no,             // 🟢 Membaca murni kode REG-2026-XXXXX
         fullname: r.fullname,
-        memberNo: r.member_no || '-',          // Tetap murni menampung kolom member_no dari DB
-        endDate: r.end_date || null,
+        memberNo: r.MemberNo || '-',           // 🟢 Membaca murni kolom MemberNo kapital dari DB
+        endDate: r.EndDate || null,            // 🟢 Membaca murni kolom EndDate kapital dari DB
         identityNo: r.identity_no || '-',
         noHp: r.no_hp || '-',
         email: r.email || '-',
