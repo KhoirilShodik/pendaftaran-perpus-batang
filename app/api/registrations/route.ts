@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
 // ============================================================
-// GET — Ambil Semua Registrations (REKOMENDASI PERBAIKAN)
+// GET — Ambil Semua Registrations (Untuk Dashboard Admin / Cek Status)
 // ============================================================
 export async function GET(req: NextRequest) {
   try {
@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
     const ticketNo = searchParams.get('ticket_no')
 
     if (ticketNo) {
-      // 🟢 PERBAIKAN: Gunakan nama kolom asli (MemberNo & EndDate) lalu aliaskan (AS) ke huruf kecil
-      // agar React Hook frontend (r.member_no) tidak mengalami error / undefined.
+      // 🟢 PERBAIKAN AG (Akar Masalah 2 & 3): Menggunakan kolom asli database Hostinger (MemberNo & EndDate)
+      // lalu di-aliaskan (AS) menjadi member_no dan end_date agar dibaca mulus oleh React Hook frontend.
       const [rows] = await pool.execute(
         `SELECT ticket_no, MemberNo AS member_no, EndDate AS end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
@@ -24,9 +24,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: data[0] })
     }
 
-    // Ambil semua data (dashboard admin)
+    // Ambil semua data untuk Dashboard Admin
+    // 🟢 PERBAIKAN AG (Akar Masalah 3): Ganti SELECT * menjadi SELECT eksplisit dengan ALIAS 
+    // agar data list di dashboard admin tidak menghasilkan nilai 'undefined' pada nomor anggota & tanggal
     const [rows] = await pool.execute(
-      `SELECT * FROM registrations ORDER BY created_at DESC`
+      `SELECT id, ticket_no, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
+              rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
+              marital_status_id, job_id, institution_name, mother_maiden_name, email, no_hp, phone, 
+              agama_id, nama_darurat, telp_darurat, status_hubungan_darurat, pas_foto_url, foto_ktp_url, 
+              status, reject_reason, created_at, updated_at, approved_at, approved_by, 
+              MemberNo AS member_no, EndDate AS end_date 
+       FROM registrations 
+       ORDER BY created_at DESC`
     )
     return NextResponse.json({ data: rows })
 
@@ -111,7 +120,7 @@ export async function PATCH(req: NextRequest) {
     let finalEndDate = null;
 
     if (status === 'Disetujui') {
-      // 1. Ambil data lengkap pendaftar tersebut dari database web Hostinger sebelum dikirim ke bridge
+      // 1. Ambil data lengkap pendaftar dari database web Hostinger
       const [rows] = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
@@ -132,7 +141,7 @@ export async function PATCH(req: NextRequest) {
           headers: {
             'Content-Type': 'application/json',
             'X-API-Key': process.env.BRIDGE_API_KEY || 'dispuspa-batang-secret-2026',
-            'bypass-tunnel-reminder': 'true',       // ← Solusi Bypass Halaman Interstitial Loca.lt / Cloudflare Tunnel
+            'bypass-tunnel-reminder': 'true',
             'User-Agent': 'NextJS-PerpusBatang/1.0'
           },
           body: JSON.stringify({
@@ -153,7 +162,7 @@ export async function PATCH(req: NextRequest) {
             status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
             institution_name: dataPendaftar.institution_name,
             photo_url: dataPendaftar.pas_foto_url,
-            jenis_anggota_id: dataPendaftar.job_id === 1 ? 1 : 13, // Menyesuaikan dinamis jika Pelajar/Umum
+            jenis_anggota_id: dataPendaftar.job_id === 1 ? 1 : 13,
             identity_type_id: dataPendaftar.identity_type_id || 1,
             education_level_id: dataPendaftar.education_level_id || 1,
             sex_id: dataPendaftar.sex_id || 1,
@@ -170,20 +179,26 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
-        // 3. Jika PHP Bridge sukses memasukkan data ke INLIS Lite, ambil data responnya
+        // 3. Jika PHP Bridge sukses memasukkan data ke INLIS Lite
         if (bridgeResponse.ok && bridgeData.success) {
-          nextMemberNo = bridgeData.member_no;
+          // Antisipasi huruf besar/kecil dari PHP Bridge response
+          nextMemberNo = bridgeData.member_no || bridgeData.MemberNo;
 
-          // Antisipasi jika PHP bridge mengembalikan tanggal berlaku otomatis, jika tidak set fallback +3 tahun
           if (bridgeData.end_date) {
             finalEndDate = bridgeData.end_date;
           } else {
             const now = new Date();
-            now.setFullYear(now.getFullYear() + 3); // Berlaku 3 Tahun standar INLIS
+            now.setFullYear(now.getFullYear() + 3); // Standar 3 Tahun INLIS
             finalEndDate = now.toISOString().split('T')[0];
           }
 
-          // 4. UPDATE Status & Simpan MemberNo + EndDate ke database web. TICKET_NO Tetap pakai REG asli!
+          if (!nextMemberNo) {
+            throw new Error('Nomor anggota dari PHP Bridge tidak terbaca oleh API.');
+          }
+
+          // 🟢 PERBAIKAN AG (Akar Masalah 1 & 2): 
+          // 1. Target diubah ke kolom fisik asli Hostinger (MemberNo & EndDate).
+          // 2. Kolom ticket_no DIHAPUS dari SQL SET agar string 'REG-*****' tidak tertimpa!
           await pool.execute(
             `UPDATE registrations 
              SET status = 'Disetujui', 
@@ -206,14 +221,12 @@ export async function PATCH(req: NextRequest) {
       }
 
     } else if (status === 'Ditolak') {
-      // Logika jika pendaftaran ditolak oleh petugas admin
       await pool.execute(
         `UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?`,
         [reject_reason, adminIdentity, id]
       )
     }
 
-    // Mengembalikan response sukses ke frontend Next.js admin dashboard
     return NextResponse.json({
       success: true,
       member_no: nextMemberNo,

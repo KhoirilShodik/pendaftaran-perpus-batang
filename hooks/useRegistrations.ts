@@ -101,7 +101,7 @@ export function useRegistrations() {
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menyetujui')
 
     // Sync local state
-    setRegistrations(prev => prev.map(item => 
+    setRegistrations(prev => prev.map(item =>
       item.id === reg.id ? { ...item, status: 'Disetujui', approvedAt: new Date().toISOString() } : item
     ))
 
@@ -134,7 +134,7 @@ export function useRegistrations() {
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menolak')
 
     // Sync local state
-    setRegistrations(prev => prev.map(item => 
+    setRegistrations(prev => prev.map(item =>
       item.id === reg.id ? { ...item, status: 'Ditolak', rejectReason: reason } : item
     ))
 
