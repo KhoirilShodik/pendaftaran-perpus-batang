@@ -1,4 +1,3 @@
-// hooks/useRegistrations.ts
 'use client'
 import { useState, useCallback } from 'react'
 import { Registration, RegistrationStatus } from '@/types'
@@ -29,8 +28,8 @@ export function useRegistrations() {
         id: r.id,
         ticketNumber: r.ticket_no,             // 🟢 Membaca murni kode REG-2026-XXXXX
         fullname: r.fullname,
-        memberNo: r.MemberNo || '-',           // 🟢 Membaca murni kolom MemberNo kapital dari DB
-        endDate: r.EndDate || null,            // 🟢 Membaca murni kolom EndDate kapital dari DB
+        memberNo: r.member_no || '-',          // 🟢 DISESUAIKAN: Membaca kolom member_no huruf kecil dari DB
+        endDate: r.end_date || null,           // 🟢 DISESUAIKAN: Membaca kolom end_date huruf kecil dari DB
         identityNo: r.identity_no || '-',
         noHp: r.no_hp || '-',
         email: r.email || '-',

@@ -1,4 +1,3 @@
-// app/api/registrations/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
@@ -12,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     if (ticketNo) {
       const [rows] = await pool.execute(
-        `SELECT ticket_no, MemberNo, EndDate, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
+        `SELECT ticket_no, member_no, end_date, job_id, pas_foto_url, fullname, status, created_at, approved_at, reject_reason 
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
         [ticketNo]
       )
@@ -23,9 +22,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: data[0] })
     }
 
-    // Ambil data murni tanpa alias yang merusak pemetaan objek
+    // DISESUAIKAN: Ambil kolom member_no dan end_date menggunakan huruf kecil
     const [rows] = await pool.execute(
-      `SELECT id, ticket_no, MemberNo, EndDate, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
+      `SELECT id, ticket_no, member_no, end_date, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
               rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
               marital_status_id, job_id, institution_name, mother_maiden_name, email, no_hp, phone, 
               agama_id, nama_darurat, telp_darurat, status_hubungan_darurat, pas_foto_url, foto_ktp_url, 
@@ -220,13 +219,13 @@ export async function PATCH(req: NextRequest) {
           });
           console.log('======================================');
 
-          // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
+          // 4. DISESUAIKAN: Eksekusi UPDATE Kolom member_no & end_date (huruf kecil) ke Hostinger
           await pool.execute(
             `UPDATE registrations 
              SET 
                 status = ?,
-                MemberNo = ?,
-                EndDate = ?,
+                member_no = ?,
+                end_date = ?,
                 approved_at = NOW(),
                 approved_by = ?,
                 updated_at = NOW()
@@ -240,9 +239,9 @@ export async function PATCH(req: NextRequest) {
             ]
           );
 
-          // 🔍 [LOG VERCEL 4] - Ambil ulang data untuk membuktikan apakah ticket_no berubah atau tidak
+          // 🔍 [LOG VERCEL 4] - Ambil ulang data untuk membuktikan apakah data tersimpan dengan benar
           const [afterRows] = await pool.execute(
-            `SELECT ticket_no, MemberNo, EndDate, status 
+            `SELECT ticket_no, member_no, end_date, status 
              FROM registrations 
              WHERE id = ? LIMIT 1`,
             [id]
