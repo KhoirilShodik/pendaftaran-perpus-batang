@@ -1,3 +1,4 @@
+// hooks/useRegistrations.ts
 'use client'
 import { useState, useCallback } from 'react'
 import { Registration, RegistrationStatus } from '@/types'
@@ -93,42 +94,44 @@ export function useRegistrations() {
   // APPROVE — Setujui Pendaftaran & Sinkronisasi Real-time
   // ============================================================
   const handleApprove = async (reg: Registration) => {
-  if (reg.email === '-' || !reg.email.includes('@')) {
-    throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
-  }
+    if (reg.email === '-' || !reg.email.includes('@')) {
+      throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
+    }
 
-  const res = await fetch('/api/registrations', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: reg.id,
-      status: 'Disetujui',
-      approved_by: 'admin.perpus'
+    const res = await fetch('/api/registrations', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: reg.id,
+        status: 'Disetujui'
+      })
     })
-  })
 
-  const json = await res.json()
+    const json = await res.json()
 
-  console.log('================================')
-  console.log('DEBUG APPROVE RESPONSE')
-  console.log(json)
-  console.log('================================')
+    // 🔍 DEBUG DI CONSOLE LOG BROWSER (F12)
+    console.log('================================')
+    console.log('DEBUG APPROVE FRONTEND RESPONSE')
+    console.log(json)
+    console.log('================================')
 
-  if (!res.ok || !json.success) {
-    throw new Error(json.error || 'Gagal menyetujui')
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Gagal menyetujui')
+    }
+
+    // Ambil ulang data fresh dari DB online Hostinger
+    await fetchRegistrations()
+
+    // Kirim email notifikasi sukses ke user
+    await sendNotification({
+      type: 'STATUS_APPROVED',
+      email: reg.email,
+      fullname: reg.fullname,
+      ticketNumber: reg.ticketNumber
+    })
+
+    setSelectedReg(null)
   }
-
-  await fetchRegistrations()
-
-  await sendNotification({
-    type: 'STATUS_APPROVED',
-    email: reg.email,
-    fullname: reg.fullname,
-    ticketNumber: reg.ticketNumber
-  })
-
-  setSelectedReg(null)
-}
 
   // ============================================================
   // REJECT — Tolak Pendaftaran
@@ -151,7 +154,6 @@ export function useRegistrations() {
     const json = await res.json()
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menolak')
 
-    // 🟢 PERBAIKAN: Ambil ulang data fresh setelah reject
     await fetchRegistrations()
 
     await sendNotification({

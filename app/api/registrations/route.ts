@@ -1,3 +1,4 @@
+// app/api/registrations/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
@@ -165,7 +166,7 @@ export async function PATCH(req: NextRequest) {
 
         const textData = await bridgeResponse.text();
         
-        // 🔍 [CONSOLE LOG 1] - Cetak respon mentah (String) dari PHP bridge ke terminal VS Code Anda
+        // 🔍 [LOG VERCEL 1] - Memantau respon mentah PHP Bridge
         console.log('\n===========================================');
         console.log('=== [DEBUG] TEXT MENTAH DARI PHP BRIDGE ===');
         console.log(textData);
@@ -176,7 +177,7 @@ export async function PATCH(req: NextRequest) {
         try {
           bridgeData = JSON.parse(textData);
           
-          // 🔍 [CONSOLE LOG 2] - Cetak bentuk Object JSON rapi dari PHP Bridge
+          // 🔍 [LOG VERCEL 2] - Memantau objek JSON hasil parsing
           console.log('======================================');
           console.log('=== [DEBUG] OBJECT JSON PHP BRIDGE ===');
           console.log(JSON.stringify(bridgeData, null, 2));
@@ -189,7 +190,7 @@ export async function PATCH(req: NextRequest) {
         // 3. Validasi Response Sukses dari Bridge
         if (bridgeResponse.ok && bridgeData.success) {
           
-          // ✨ ANTI-FAILOVER LOGIC: Ambil dari key mana pun yang dilempar PHP (termasuk jika masuk ke ticket_no)
+          // ✨ ANTI-FAILOVER LOGIC: Ambil nomor dari struktur key apa pun
           nextMemberNo = bridgeData.member_no || 
                          bridgeData.MemberNo || 
                          bridgeData.memberNo || 
@@ -198,7 +199,6 @@ export async function PATCH(req: NextRequest) {
           if (bridgeData.end_date || bridgeData.EndDate) {
             finalEndDate = bridgeData.end_date || bridgeData.EndDate;
           } else {
-            // Fallback: Jika bridge tidak melempar tanggal, generate otomatis (+3 tahun)
             const now = new Date();
             now.setFullYear(now.getFullYear() + 3);
             finalEndDate = now.toISOString().split('T')[0];
@@ -208,58 +208,50 @@ export async function PATCH(req: NextRequest) {
             throw new Error(`Nomor anggota tidak terdeteksi. Isi JSON Bridge: ${JSON.stringify(bridgeData)}`);
           }
 
+          // 🔍 [LOG VERCEL 3] - Nilai variabel TEPAT SEBELUM Query MySQL dijalankan
+          console.log('======================================');
+          console.log('DEBUG BEFORE UPDATE SYSTEM');
+          console.log({
+            id,
+            original_ticket_no: dataPendaftar.ticket_no,
+            nextMemberNo,
+            finalEndDate,
+            adminIdentity
+          });
+          console.log('======================================');
+
           // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
-          // ============================================================
-// DEBUG SEBELUM UPDATE
-// ============================================================
-console.log('======================================');
-console.log('DEBUG BEFORE UPDATE');
-console.log({
-  id,
-  original_ticket_no: dataPendaftar.ticket_no,
-  nextMemberNo,
-  finalEndDate,
-  adminIdentity
-});
-console.log('======================================');
+          await pool.execute(
+            `UPDATE registrations 
+             SET 
+                status = ?,
+                MemberNo = ?,
+                EndDate = ?,
+                approved_at = NOW(),
+                approved_by = ?,
+                updated_at = NOW()
+             WHERE id = ?`,
+            [
+              'Disetujui',
+              String(nextMemberNo),
+              String(finalEndDate),
+              String(adminIdentity),
+              Number(id)
+            ]
+          );
 
-// ============================================================
-// UPDATE DATABASE (AMAN)
-// ============================================================
-await pool.execute(
-  `UPDATE registrations 
-   SET 
-     
-      status = ?,
-      MemberNo = ?,
-      EndDate = ?,
-      approved_at = NOW(),
-      approved_by = ?,
-      updated_at = NOW()
-   WHERE id = ?`,
-  [
-    'Disetujui',
-    String(nextMemberNo),
-    String(finalEndDate),
-    String(adminIdentity),
-    Number(id)
-  ]
-);
+          // 🔍 [LOG VERCEL 4] - Ambil ulang data untuk membuktikan apakah ticket_no berubah atau tidak
+          const [afterRows] = await pool.execute(
+            `SELECT ticket_no, MemberNo, EndDate, status 
+             FROM registrations 
+             WHERE id = ? LIMIT 1`,
+            [id]
+          );
 
-// ============================================================
-// DEBUG SETELAH UPDATE
-// ============================================================
-const [afterRows] = await pool.execute(
-  `SELECT ticket_no, MemberNo, status 
-   FROM registrations 
-   WHERE id = ? LIMIT 1`,
-  [id]
-);
-
-console.log('======================================');
-console.log('DEBUG AFTER UPDATE');
-console.log(afterRows);
-console.log('======================================');
+          console.log('======================================');
+          console.log('DEBUG AFTER UPDATE SYSTEM (DB STATE)');
+          console.log(afterRows);
+          console.log('======================================');
         } else {
           console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
           return NextResponse.json({ error: bridgeData.error || 'Gagal sinkronisasi data ke INLIS Lite' }, { status: 422 });
