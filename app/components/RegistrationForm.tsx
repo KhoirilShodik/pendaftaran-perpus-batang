@@ -38,19 +38,18 @@ export default function RegistrationForm() {
       {/* Garis gradien atas */}
       <div className="p-1 bg-gradient-to-r from-[#1e3a5f] via-[#c8a84b] to-[#1e3a5f]" />
       
-      {/* Posisi form menggunakan relative agar tombol autofill di dalamnya aman */}
-      <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-10 relative">
+      <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-10">
         
-        {/* 🟢 TOMBOL DIBAWAH INI SUDAH DIPINDAHKAN KE DALAM FORM AGAR TIDAK TERPOTONG OVERFLOW */}
-        <div className="absolute top-4 right-6 z-50">
+        {/* 🟢 PERBAIKAN TOTAL: Tombol ditaruh di dalam baris flex khusus, anti-ngumpet */}
+        <div className="flex justify-end w-full mb-2 border-b border-gray-100 pb-4">
           <button
             type="button"
             onClick={handleAutofill}
-            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md active:scale-95 transition-all duration-150 border border-amber-400"
+            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md active:scale-95 transition-all duration-150 border border-amber-400"
             title="Isi form otomatis untuk mempercepat development"
           >
-            <Zap size={14} className="fill-white" />
-            Autofill Testing
+            <Zap size={14} className="fill-white animate-pulse" />
+            ⚡ Autofill Testing (Klik Sini)
           </button>
         </div>
         
