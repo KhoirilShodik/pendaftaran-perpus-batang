@@ -11,6 +11,9 @@ export function useRegistrations() {
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
 
+  // ============================================================
+  // FETCH — Ambil data dan map ke properti yang benar
+  // ============================================================
   const fetchRegistrations = useCallback(async () => {
     try {
       setIsLoadingData(true)
@@ -22,9 +25,9 @@ export function useRegistrations() {
       const data = json.data || []
       const mapped = data.map((r: any) => ({
         id: r.id,
-        ticketNumber: r.ticket_no,
+        ticketNumber: r.ticket_no,             // Murni Nomor Tiket (REG-XXXXX)
         fullname: r.fullname,
-        memberNo: r.member_no || r.ticket_no,
+        memberNo: r.member_no || '-',          // 🟢 PERBAIKAN: Jika belum disetujui, biarkan '-' (Jangan ditimpa ticket_no)
         endDate: r.end_date || null,
         identityNo: r.identity_no || '-',
         noHp: r.no_hp || '-',
@@ -67,6 +70,9 @@ export function useRegistrations() {
     }
   }, [])
 
+  // ============================================================
+  // NOTIFY — Mengirim Email/Notifikasi Sistem
+  // ============================================================
   const sendNotification = async (payload: any) => {
     try {
       const res = await fetch('/api/notify', {
@@ -82,6 +88,9 @@ export function useRegistrations() {
     }
   }
 
+  // ============================================================
+  // APPROVE — Setujui Pendaftaran & Sinkronisasi Real-time
+  // ============================================================
   const handleApprove = async (reg: Registration) => {
     if (reg.email === '-' || !reg.email.includes('@')) {
       throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
@@ -100,9 +109,21 @@ export function useRegistrations() {
     const json = await res.json()
     if (!res.ok || !json.success) throw new Error(json.error || 'Gagal menyetujui')
 
-    // Sync local state
+    // 🟢 PERBAIKAN: Tangkap member_no dan end_date dari respons backend Next.js
+    const generatedMemberNo = json.member_no || '-';
+    const generatedEndDate = json.end_date || new Date().toISOString();
+
+    // Sync local state tanpa merusak ticketNumber
     setRegistrations(prev => prev.map(item =>
-      item.id === reg.id ? { ...item, status: 'Disetujui', approvedAt: new Date().toISOString() } : item
+      item.id === reg.id 
+        ? { 
+            ...item, 
+            status: 'Disetujui', 
+            memberNo: generatedMemberNo, // 🟢 Masuk murni ke memberNo (bukan ticketNumber lagi)
+            endDate: generatedEndDate,
+            approvedAt: new Date().toISOString() 
+          } 
+        : item
     ))
 
     await sendNotification({
@@ -115,6 +136,9 @@ export function useRegistrations() {
     setSelectedReg(null)
   }
 
+  // ============================================================
+  // REJECT — Tolak Pendaftaran
+  // ============================================================
   const handleReject = async (reg: Registration, reason: string) => {
     if (reg.email === '-' || !reg.email.includes('@')) {
       throw new Error('Email pendaftar tidak valid, tidak bisa mengirim notifikasi.')
