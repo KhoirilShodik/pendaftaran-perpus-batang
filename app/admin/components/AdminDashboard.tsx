@@ -132,20 +132,36 @@ export default function AdminDashboard() {
     setTimeout(() => setToast(''), 3000)
   }, [setToast])
 
+  // 🟢 PERBAIKAN: Handler untuk eksekusi persetujuan pendaftaran admin
   const onApprove = async (reg: Registration) => {
     try {
       await handleApprove(reg)
       showToast('✅ Pendaftaran berhasil disetujui!')
+      
+      // Mengambil ulang data dari DB agar kolom member_no yang terisi oleh PHP Bridge langsung sinkron ke UI
+      await fetchRegistrations()
+      
+      // Otomatis tutup detail modal lama agar jika dibuka kembali datanya sudah ter-update
+      setSelectedReg(null)
     } catch (err: any) {
       showToast('❌ ' + err.message)
     }
   }
 
+  // 🟢 PERBAIKAN: Handler untuk eksekusi penolakan pendaftaran admin
   const onReject = async () => {
     if (!selectedReg || !rejectReason.trim()) return
     try {
       await handleReject(selectedReg, rejectReason)
       showToast('✅ Pendaftaran telah ditolak.')
+      
+      // Tarik ulang daftar database terbaru untuk menyegarkan baris list table
+      await fetchRegistrations()
+      
+      // Reset state form reject
+      setSelectedReg(null)
+      setShowRejectForm(false)
+      setRejectReason('')
     } catch (err: any) {
       showToast('❌ ' + err.message)
     }
@@ -367,12 +383,6 @@ export default function AdminDashboard() {
           </>
         )}
       </main>
-
-      {/* Old Password Modal Removed */}
-
-      {toast && (
-        <Toast message={toast} />
-      )}
     </div>
   )
 }
