@@ -209,18 +209,57 @@ export async function PATCH(req: NextRequest) {
           }
 
           // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
-          await pool.execute(
-            `UPDATE registrations 
-             SET status = 'Disetujui', 
-                 MemberNo = ?, 
-                 EndDate = ?, 
-                 approved_at = NOW(), 
-                 approved_by = ?, 
-                 updated_at = NOW() 
-             WHERE id = ?`,
-            [nextMemberNo, finalEndDate, adminIdentity, id]
-          );
+          // ============================================================
+// DEBUG SEBELUM UPDATE
+// ============================================================
+console.log('======================================');
+console.log('DEBUG BEFORE UPDATE');
+console.log({
+  id,
+  original_ticket_no: dataPendaftar.ticket_no,
+  nextMemberNo,
+  finalEndDate,
+  adminIdentity
+});
+console.log('======================================');
 
+// ============================================================
+// UPDATE DATABASE (AMAN)
+// ============================================================
+await pool.execute(
+  `UPDATE registrations 
+   SET 
+      ticket_no = ticket_no,
+      status = ?,
+      MemberNo = ?,
+      EndDate = ?,
+      approved_at = NOW(),
+      approved_by = ?,
+      updated_at = NOW()
+   WHERE id = ?`,
+  [
+    'Disetujui',
+    String(nextMemberNo),
+    String(finalEndDate),
+    String(adminIdentity),
+    Number(id)
+  ]
+);
+
+// ============================================================
+// DEBUG SETELAH UPDATE
+// ============================================================
+const [afterRows] = await pool.execute(
+  `SELECT ticket_no, MemberNo, status 
+   FROM registrations 
+   WHERE id = ? LIMIT 1`,
+  [id]
+);
+
+console.log('======================================');
+console.log('DEBUG AFTER UPDATE');
+console.log(afterRows);
+console.log('======================================');
         } else {
           console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
           return NextResponse.json({ error: bridgeData.error || 'Gagal sinkronisasi data ke INLIS Lite' }, { status: 422 });
