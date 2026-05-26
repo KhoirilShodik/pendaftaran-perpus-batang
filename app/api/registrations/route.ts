@@ -221,24 +221,32 @@ export async function PATCH(req: NextRequest) {
 
           // 4. DISESUAIKAN: Eksekusi UPDATE Kolom member_no & end_date (huruf kecil) ke Hostinger
           await pool.execute(
-            `UPDATE registrations 
-             SET 
-                status = ?,
-                member_no = ?,
-                end_date = ?,
-                approved_at = NOW(),
-                approved_by = ?,
-                updated_at = NOW()
-             WHERE id = ?`,
-            [
-              'Disetujui',
-              String(nextMemberNo),
-              String(finalEndDate),
-              String(adminIdentity),
-              Number(id)
-            ]
-          );
+  `UPDATE registrations 
+   SET 
+      status = ?,
+      member_no = ?,
+      end_date = ?,
+      approved_at = NOW(),
+      approved_by = ?,
+      updated_at = NOW()
+   WHERE id = ?`,
+  [
+    'Disetujui',
+    String(nextMemberNo),
+    String(finalEndDate),
+    String(adminIdentity),
+    Number(id)
+  ]
+)
 
+const [debugCheck] = await pool.execute(
+  `SELECT id, ticket_no, member_no 
+   FROM registrations 
+   WHERE id = ?`,
+  [id]
+)
+
+console.log('DEBUG DB AFTER UPDATE:', debugCheck)
           // 🔍 [LOG VERCEL 4] - Ambil ulang data untuk membuktikan apakah data tersimpan dengan benar
           const [afterRows] = await pool.execute(
             `SELECT ticket_no, member_no, end_date, status 
