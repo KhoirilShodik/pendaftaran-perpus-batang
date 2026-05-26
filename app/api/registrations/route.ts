@@ -15,279 +15,128 @@ export async function GET(req: NextRequest) {
          FROM registrations WHERE ticket_no = ? LIMIT 1`,
         [ticketNo]
       )
-
       const data = rows as any[]
-
       if (!data.length) {
-        return NextResponse.json(
-          { error: 'Tidak ditemukan' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Tidak ditemukan' }, { status: 404 })
       }
-
       return NextResponse.json({ data: data[0] })
     }
 
+    // Ambil data murni tanpa alias yang merusak pemetaan objek
     const [rows] = await pool.execute(
-      `SELECT 
-          id,
-          ticket_no,
-          MemberNo,
-          EndDate,
-          fullname,
-          place_of_birth,
-          date_of_birth,
-          address,
-          kecamatan,
-          kelurahan,
-          rt,
-          rw,
-          city,
-          province,
-          identity_type_id,
-          identity_no,
-          education_level_id,
-          sex_id,
-          marital_status_id,
-          job_id,
-          institution_name,
-          mother_maiden_name,
-          email,
-          no_hp,
-          phone,
-          agama_id,
-          nama_darurat,
-          telp_darurat,
-          status_hubungan_darurat,
-          pas_foto_url,
-          foto_ktp_url,
-          status,
-          reject_reason,
-          created_at,
-          updated_at,
-          approved_at,
-          approved_by
-       FROM registrations
+      `SELECT id, ticket_no, MemberNo, EndDate, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
+              rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
+              marital_status_id, job_id, institution_name, mother_maiden_name, email, no_hp, phone, 
+              agama_id, nama_darurat, telp_darurat, status_hubungan_darurat, pas_foto_url, foto_ktp_url, 
+              status, reject_reason, created_at, updated_at, approved_at, approved_by
+       FROM registrations 
        ORDER BY created_at DESC`
     )
-
     return NextResponse.json({ data: rows })
 
   } catch (err: any) {
     console.error('GET registrations error:', err)
-
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
 
 // ============================================================
-// POST — Simpan Pendaftaran Baru
+// POST — Simpan Pendaftaran Anggota Baru Online
 // ============================================================
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-
     const {
-      ticket_no,
-      fullname,
-      place_of_birth,
-      date_of_birth,
-      address,
-      kecamatan,
-      kelurahan,
-      rt,
-      rw,
-      city,
-      province,
-      identity_type_id,
-      identity_no,
-      education_level_id,
-      sex_id,
-      marital_status_id,
-      job_id,
-      institution_name,
-      mother_maiden_name,
-      email,
-      no_hp,
-      phone,
-      agama_id,
-      nama_darurat,
-      telp_darurat,
-      status_hubungan_darurat,
-      pas_foto_url,
-      foto_ktp_url
+      ticket_no, fullname, place_of_birth, date_of_birth,
+      address, kecamatan, kelurahan, rt, rw, city, province,
+      identity_type_id, identity_no, education_level_id,
+      sex_id, marital_status_id, job_id, institution_name,
+      mother_maiden_name, email, no_hp, phone, agama_id,
+      nama_darurat, telp_darurat, status_hubungan_darurat,
+      pas_foto_url, foto_ktp_url
     } = body
 
     await pool.execute(
       `INSERT INTO registrations (
-        ticket_no,
-        fullname,
-        place_of_birth,
-        date_of_birth,
-        address,
-        kecamatan,
-        kelurahan,
-        rt,
-        rw,
-        city,
-        province,
-        identity_type_id,
-        identity_no,
-        education_level_id,
-        sex_id,
-        marital_status_id,
-        job_id,
-        institution_name,
-        mother_maiden_name,
-        email,
-        no_hp,
-        phone,
-        agama_id,
-        nama_darurat,
-        telp_darurat,
-        status_hubungan_darurat,
-        pas_foto_url,
-        foto_ktp_url,
-        status,
-        created_at,
-        updated_at
+        ticket_no, fullname, place_of_birth, date_of_birth,
+        address, kecamatan, kelurahan, rt, rw, city, province,
+        identity_type_id, identity_no, education_level_id,
+        sex_id, marital_status_id, job_id, institution_name,
+        mother_maiden_name, email, no_hp, phone, agama_id,
+        nama_darurat, telp_darurat, status_hubungan_darurat,
+        pas_foto_url, foto_ktp_url, status, created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Menunggu', NOW(), NOW()
       )`,
       [
-        ticket_no,
-        fullname,
-        place_of_birth,
-        date_of_birth,
-        address,
-        kecamatan,
-        kelurahan,
-        rt,
-        rw,
-        city,
-        province,
-        identity_type_id,
-        identity_no,
-        education_level_id,
-        sex_id,
-        marital_status_id,
-        job_id,
-        institution_name,
-        mother_maiden_name,
-        email,
-        no_hp,
-        phone,
-        agama_id,
-        nama_darurat,
-        telp_darurat,
-        status_hubungan_darurat,
-        pas_foto_url,
-        foto_ktp_url
+        ticket_no, fullname, place_of_birth, date_of_birth,
+        address, kecamatan, kelurahan, rt, rw, city, province,
+        identity_type_id, identity_no, education_level_id,
+        sex_id, marital_status_id, job_id, institution_name,
+        mother_maiden_name, email, no_hp, phone, agama_id,
+        nama_darurat, telp_darurat, status_hubungan_darurat,
+        pas_foto_url, foto_ktp_url
       ]
     )
 
-    return NextResponse.json({
-      success: true,
-      ticket_no
-    })
+    return NextResponse.json({ success: true, ticket_no })
 
   } catch (err: any) {
     console.error('POST registration error:', err)
-
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
 
 // ============================================================
-// PATCH — Approve / Reject
+// PATCH — Update Status (Approve/Reject) + Integrasi PHP Bridge
 // ============================================================
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
+    const { id, status, reject_reason } = body
 
-    const {
-      id,
-      status,
-      reject_reason
-    } = body
-
-    // ============================================================
-    // ADMIN IDENTITY
-    // ============================================================
-    const token = req.cookies.get('admin_token')?.value
-
-    let adminIdentity = 'admin.perpus'
+    // 1. Audit Trail: Ambil Identitas Admin dari Cookie JWT
+    const token = req.cookies.get('admin_token')?.value;
+    let adminIdentity = 'admin.perpus';
 
     if (token) {
       try {
-        const { jwtVerify } = await import('jose')
-
-        const secret = new TextEncoder().encode(
-          process.env.JWT_SECRET ||
-          'super_secret_jwt_key_dispuspa_batang_2026_xyz123'
-        )
-
-        const { payload } = await jwtVerify(token, secret)
-
-        adminIdentity =
-          (payload.email as string) ||
-          (payload.username as string) ||
-          adminIdentity
-
+        const { jwtVerify } = await import('jose');
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
+        const { payload } = await jwtVerify(token, secret);
+        adminIdentity = (payload.email as string) || (payload.username as string) || adminIdentity;
       } catch (e) {
-        console.error('Invalid token for audit trail')
+        console.error('Invalid token for audit trail, using default.');
       }
     }
 
-    let nextMemberNo: string | null = null
-    let finalEndDate: string | null = null
+    let nextMemberNo = null;
+    let finalEndDate = null;
 
-    // ============================================================
-    // APPROVE
-    // ============================================================
+    // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
-
       const [rows] = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
       )
-
       const dataPendaftar = (rows as any[])[0]
 
       if (!dataPendaftar) {
-        return NextResponse.json(
-          { error: 'Data pendaftaran tidak ditemukan' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
       }
 
-      const BRIDGE_URL =
-        'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member'
+      const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       try {
-
-        // ============================================================
-        // KIRIM KE PHP BRIDGE
-        // ============================================================
+        // 2. Kirim Data Lengkap ke PHP Bridge (INLIS Lite Lokal)
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
-
           headers: {
             'Content-Type': 'application/json',
-            'X-API-Key':
-              process.env.BRIDGE_API_KEY ||
-              'dispuspa-batang-secret-2026',
-
+            'X-API-Key': process.env.BRIDGE_API_KEY || 'dispuspa-batang-secret-2026',
             'bypass-tunnel-reminder': 'true',
             'User-Agent': 'NextJS-PerpusBatang/1.0'
           },
-
           body: JSON.stringify({
             fullname: dataPendaftar.fullname,
             identity_no: dataPendaftar.identity_no,
@@ -306,239 +155,144 @@ export async function PATCH(req: NextRequest) {
             status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
             institution_name: dataPendaftar.institution_name,
             photo_url: dataPendaftar.pas_foto_url,
+            jenis_anggota_id: Number(dataPendaftar.job_id) === 1 ? 1 : 13,
+            identity_type_id: dataPendaftar.identity_type_id || 1,
+            education_level_id: dataPendaftar.education_level_id || 1,
+            sex_id: dataPendaftar.sex_id || 1,
+            agama_id: dataPendaftar.agama_id || 1
+          }),
+        });
 
-            jenis_anggota_id:
-              Number(dataPendaftar.job_id) === 1 ? 1 : 13,
+        const textData = await bridgeResponse.text();
+        
+        // 🔍 [CONSOLE LOG 1] - Cetak respon mentah (String) dari PHP bridge ke terminal VS Code Anda
+        console.log('\n===========================================');
+        console.log('=== [DEBUG] TEXT MENTAH DARI PHP BRIDGE ===');
+        console.log(textData);
+        console.log('===========================================\n');
 
-            identity_type_id:
-              dataPendaftar.identity_type_id || 1,
-
-            education_level_id:
-              dataPendaftar.education_level_id || 1,
-
-            sex_id:
-              dataPendaftar.sex_id || 1,
-
-            agama_id:
-              dataPendaftar.agama_id || 1
-          })
-        })
-
-        const textData = await bridgeResponse.text()
-
-        console.log('======================================')
-        console.log('RAW PHP BRIDGE RESPONSE')
-        console.log(textData)
-        console.log('======================================')
-
-        let bridgeData: any
+        let bridgeData: any;
 
         try {
-          bridgeData = JSON.parse(textData)
-
-          console.log('======================================')
-          console.log('JSON PHP BRIDGE')
-          console.log(JSON.stringify(bridgeData, null, 2))
-          console.log('======================================')
+          bridgeData = JSON.parse(textData);
+          
+          // 🔍 [CONSOLE LOG 2] - Cetak bentuk Object JSON rapi dari PHP Bridge
+          console.log('======================================');
+          console.log('=== [DEBUG] OBJECT JSON PHP BRIDGE ===');
+          console.log(JSON.stringify(bridgeData, null, 2));
+          console.log('======================================\n');
 
         } catch (jsonErr) {
-
-          throw new Error(
-            `Response PHP Bridge bukan JSON valid: ${textData}`
-          )
+          throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
-        // ============================================================
-        // VALIDASI RESPONSE BRIDGE
-        // ============================================================
+        // 3. Validasi Response Sukses dari Bridge
         if (bridgeResponse.ok && bridgeData.success) {
+          
+          // ✨ ANTI-FAILOVER LOGIC: Ambil dari key mana pun yang dilempar PHP (termasuk jika masuk ke ticket_no)
+          nextMemberNo = bridgeData.member_no || 
+                         bridgeData.MemberNo || 
+                         bridgeData.memberNo || 
+                         (bridgeData.ticket_no && bridgeData.ticket_no.startsWith('012026') ? bridgeData.ticket_no : null);
 
-          // ============================================================
-          // NOMOR ANGGOTA
-          // ============================================================
-          nextMemberNo =
-            bridgeData.member_no ||
-            bridgeData.MemberNo ||
-            bridgeData.memberNo ||
-            null
+          if (bridgeData.end_date || bridgeData.EndDate) {
+            finalEndDate = bridgeData.end_date || bridgeData.EndDate;
+          } else {
+            // Fallback: Jika bridge tidak melempar tanggal, generate otomatis (+3 tahun)
+            const now = new Date();
+            now.setFullYear(now.getFullYear() + 3);
+            finalEndDate = now.toISOString().split('T')[0];
+          }
 
           if (!nextMemberNo) {
-            throw new Error(
-              `Nomor anggota tidak ditemukan dari bridge`
-            )
+            throw new Error(`Nomor anggota tidak terdeteksi. Isi JSON Bridge: ${JSON.stringify(bridgeData)}`);
           }
 
+          // 4. Eksekusi UPDATE Kolom MemberNo & EndDate ke Database Hostinger
           // ============================================================
-          // END DATE
-          // ============================================================
-          if (bridgeData.end_date || bridgeData.EndDate) {
+// DEBUG SEBELUM UPDATE
+// ============================================================
+console.log('======================================');
+console.log('DEBUG BEFORE UPDATE');
+console.log({
+  id,
+  original_ticket_no: dataPendaftar.ticket_no,
+  nextMemberNo,
+  finalEndDate,
+  adminIdentity
+});
+console.log('======================================');
 
-            finalEndDate =
-              bridgeData.end_date ||
-              bridgeData.EndDate
+// ============================================================
+// UPDATE DATABASE (AMAN)
+// ============================================================
+await pool.execute(
+  `UPDATE registrations 
+   SET 
+     
+      status = ?,
+      MemberNo = ?,
+      EndDate = ?,
+      approved_at = NOW(),
+      approved_by = ?,
+      updated_at = NOW()
+   WHERE id = ?`,
+  [
+    'Disetujui',
+    String(nextMemberNo),
+    String(finalEndDate),
+    String(adminIdentity),
+    Number(id)
+  ]
+);
 
-          } else {
+// ============================================================
+// DEBUG SETELAH UPDATE
+// ============================================================
+const [afterRows] = await pool.execute(
+  `SELECT ticket_no, MemberNo, status 
+   FROM registrations 
+   WHERE id = ? LIMIT 1`,
+  [id]
+);
 
-            const now = new Date()
-
-            now.setFullYear(now.getFullYear() + 3)
-
-            finalEndDate =
-              now.toISOString().split('T')[0]
-          }
-
-          // ============================================================
-          // DEBUG BEFORE UPDATE
-          // ============================================================
-          console.log('======================================')
-          console.log('DEBUG BEFORE UPDATE')
-
-          console.log({
-            id,
-            original_ticket_no: dataPendaftar.ticket_no,
-            nextMemberNo,
-            finalEndDate,
-            adminIdentity
-          })
-
-          console.log('======================================')
-
-          // ============================================================
-          // UPDATE DATABASE
-          // ============================================================
-          await pool.execute(
-            `UPDATE registrations
-             SET
-                ticket_no = ticket_no,
-                status = ?,
-                MemberNo = ?,
-                EndDate = ?,
-                approved_at = NOW(),
-                approved_by = ?,
-                updated_at = NOW()
-             WHERE id = ?`,
-            [
-              'Disetujui',
-              String(nextMemberNo),
-              String(finalEndDate),
-              String(adminIdentity),
-              Number(id)
-            ]
-          )
-
-          // ============================================================
-          // DEBUG AFTER UPDATE
-          // ============================================================
-          const [afterRows] = await pool.execute(
-            `SELECT
-                ticket_no,
-                MemberNo,
-                status
-             FROM registrations
-             WHERE id = ?
-             LIMIT 1`,
-            [id]
-          )
-
-          console.log('======================================')
-          console.log('DEBUG AFTER UPDATE')
-          console.log(afterRows)
-          console.log('======================================')
-
+console.log('======================================');
+console.log('DEBUG AFTER UPDATE');
+console.log(afterRows);
+console.log('======================================');
         } else {
-
-          console.error(
-            'PHP Bridge Error:',
-            bridgeData.error || 'Unknown Error'
-          )
-
-          return NextResponse.json(
-            {
-              error:
-                bridgeData.error ||
-                'Gagal sinkronisasi ke INLIS'
-            },
-            { status: 422 }
-          )
+          console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
+          return NextResponse.json({ error: bridgeData.error || 'Gagal sinkronisasi data ke INLIS Lite' }, { status: 422 });
         }
-
       } catch (bridgeErr: any) {
-
-        console.error(
-          'PHP Bridge Error:',
-          bridgeErr.message
-        )
-
-        return NextResponse.json(
-          {
-            error:
-              `PHP Bridge Error: ${bridgeErr.message}`
-          },
-          { status: 502 }
-        )
+        console.error('Gagal terhubung ke PHP Bridge:', bridgeErr.message);
+        return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
       }
 
-    // ============================================================
-    // REJECT
-    // ============================================================
+    // KONDISI B: JIKA STATUS DITOLAK
     } else if (status === 'Ditolak') {
-
       await pool.execute(
-        `UPDATE registrations
-         SET
-            status = 'Ditolak',
-            reject_reason = ?,
-            approved_by = ?,
-            updated_at = NOW()
+        `UPDATE registrations 
+         SET status = 'Ditolak', 
+             reject_reason = ?, 
+             approved_by = ?, 
+             updated_at = NOW() 
          WHERE id = ?`,
-        [
-          reject_reason || 'Persyaratan tidak sesuai',
-          adminIdentity,
-          id
-        ]
+        [reject_reason || 'Persyaratan tidak sesuai', adminIdentity, id]
       )
     }
 
-    // ============================================================
-    // FINAL CHECK
-    // ============================================================
-    const [finalCheck] = await pool.execute(
-      `SELECT
-          ticket_no,
-          MemberNo,
-          status
-       FROM registrations
-       WHERE id = ?
-       LIMIT 1`,
-      [id]
-    )
-
-    // ============================================================
-    // RESPONSE
-    // ============================================================
+    // 5. Kembalikan Response Sukses ke Frontend Dashboard
     return NextResponse.json({
       success: true,
-
-      debug: (finalCheck as any[])[0],
-
       member_no: nextMemberNo,
-
-      message:
-        status === 'Disetujui' && nextMemberNo
-          ? `Pendaftaran disetujui dan disinkronkan ke INLIS dengan No: ${nextMemberNo}`
-          : 'Status pendaftaran berhasil diperbarui.'
+      message: status === 'Disetujui' && nextMemberNo
+        ? `Pendaftaran disetujui dan disinkronkan ke INLIS dengan No: ${nextMemberNo}`
+        : 'Status pendaftaran berhasil diperbarui.'
     })
 
   } catch (err: any) {
-
-    console.error(
-      'PATCH registration error:',
-      err
-    )
-
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    )
+    console.error('PATCH registration error:', err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
