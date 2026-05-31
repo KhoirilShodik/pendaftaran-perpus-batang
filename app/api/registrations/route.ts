@@ -110,24 +110,52 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    let nextMemberNo = null;
-    let finalEndDate = null;
+    let memberNo = null;
+    let endDate = null;
 
     // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
-      const [rows] = await pool.execute(
+
+      // Fix 2: Fetch full registration row from MySQL first
+      const [rows]: any = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
-      )
-      const dataPendaftar = (rows as any[])[0]
-
-      if (!dataPendaftar) {
+      );
+      const reg = rows[0];
+      if (!reg) {
         return NextResponse.json({ error: 'Data pendaftaran tidak ditemukan' }, { status: 404 });
       }
 
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       try {
+        // Fix 2: Build bridgePayload with EXACT keys expected by perpus-bridge.php
+        const bridgePayload = {
+          fullname: reg.fullname,
+          identity_no: reg.identity_no,
+          place_of_birth: reg.place_of_birth,
+          date_of_birth: reg.date_of_birth,
+          address: reg.address,
+          kecamatan: reg.kecamatan,
+          kelurahan: reg.kelurahan,
+          rt: reg.rt,
+          rw: reg.rw,
+          no_hp: reg.no_hp,
+          email: reg.email,
+          mother_maiden_name: reg.mother_maiden_name,
+          nama_darurat: reg.nama_darurat,
+          telp_darurat: reg.telp_darurat,
+          status_hubungan_darurat: reg.status_hubungan_darurat,
+          institution_name: reg.institution_name,
+          photo_url: reg.pas_foto_url,
+          jenis_anggota_id: Number(reg.job_id) === 1 ? 1 : 13,
+          identity_type_id: reg.identity_type_id || 1,
+          education_level_id: reg.education_level_id || 1,
+          sex_id: reg.sex_id || 1,
+          agama_id: reg.agama_id || 1,
+          marital_status_id: reg.marital_status_id
+        };
+
         // 2. Kirim Data Lengkap ke PHP Bridge (INLIS Lite Lokal)
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
@@ -137,35 +165,11 @@ export async function PATCH(req: NextRequest) {
             'bypass-tunnel-reminder': 'true',
             'User-Agent': 'NextJS-PerpusBatang/1.0'
           },
-          body: JSON.stringify({
-            fullname: dataPendaftar.fullname,
-            identity_no: dataPendaftar.identity_no,
-            place_of_birth: dataPendaftar.place_of_birth,
-            date_of_birth: dataPendaftar.date_of_birth,
-            address: dataPendaftar.address,
-            kecamatan: dataPendaftar.kecamatan,
-            kelurahan: dataPendaftar.kelurahan,
-            rt: dataPendaftar.rt,
-            rw: dataPendaftar.rw,
-            no_hp: dataPendaftar.no_hp,
-            email: dataPendaftar.email,
-            mother_maiden_name: dataPendaftar.mother_maiden_name,
-            nama_darurat: dataPendaftar.nama_darurat,
-            telp_darurat: dataPendaftar.telp_darurat,
-            status_hubungan_darurat: dataPendaftar.status_hubungan_darurat,
-            institution_name: dataPendaftar.institution_name,
-            photo_url: dataPendaftar.pas_foto_url,
-            jenis_anggota_id: Number(dataPendaftar.job_id) === 1 ? 1 : 13,
-            identity_type_id: dataPendaftar.identity_type_id || 1,
-            education_level_id: dataPendaftar.education_level_id || 1,
-            sex_id: dataPendaftar.sex_id || 1,
-            agama_id: dataPendaftar.agama_id || 1
-          }),
+          body: JSON.stringify(bridgePayload),
         });
 
         const textData = await bridgeResponse.text();
-        
-        // 🔍 [LOG VERCEL 1] - Memantau respon mentah PHP Bridge
+
         console.log('\n===========================================');
         console.log('=== [DEBUG] TEXT MENTAH DARI PHP BRIDGE ===');
         console.log(textData);
@@ -175,8 +179,7 @@ export async function PATCH(req: NextRequest) {
 
         try {
           bridgeData = JSON.parse(textData);
-          
-          // 🔍 [LOG VERCEL 2] - Memantau objek JSON hasil parsing
+
           console.log('======================================');
           console.log('=== [DEBUG] OBJECT JSON PHP BRIDGE ===');
           console.log(JSON.stringify(bridgeData, null, 2));
@@ -186,90 +189,53 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
-        // 3. Validasi Response Sukses dari Bridge
-        if (bridgeResponse.ok && bridgeData.success) {
-          
-          // ✨ ANTI-FAILOVER LOGIC: Ambil nomor dari struktur key apa pun
-          nextMemberNo = bridgeData.member_no || 
-                         bridgeData.MemberNo || 
-                         bridgeData.memberNo 
-                        ;
-
-          if (bridgeData.end_date || bridgeData.EndDate) {
-            finalEndDate = bridgeData.end_date || bridgeData.EndDate;
-          } else {
-            const now = new Date();
-            now.setFullYear(now.getFullYear() + 3);
-            finalEndDate = now.toISOString().split('T')[0];
-          }
-
-          if (!nextMemberNo) {
-            throw new Error(`Nomor anggota tidak terdeteksi. Isi JSON Bridge: ${JSON.stringify(bridgeData)}`);
-          }
-
-          // 🔍 [LOG VERCEL 3] - Nilai variabel TEPAT SEBELUM Query MySQL dijalankan
-          console.log('======================================');
-          console.log('DEBUG BEFORE UPDATE SYSTEM');
-          console.log({
-            id,
-            original_ticket_no: dataPendaftar.ticket_no,
-            nextMemberNo,
-            finalEndDate,
-            adminIdentity
-          });
-          console.log('======================================');
-
-          // 4. DISESUAIKAN: Eksekusi UPDATE Kolom member_no & end_date (huruf kecil) ke Hostinger
-         await pool.query(
-  `
-  UPDATE registrations
-  SET
-    status = ?,
-    member_no = ?,
-    end_date = ?,
-    approved_at = NOW(),
-    approved_by = ?,
-    updated_at = NOW()
-  WHERE id = ?
-  `,
-  [
-    'Disetujui',
-    nextMemberNo,
-    finalEndDate,
-    adminIdentity,
-    id
-  ]
-)
-const [debugCheck] = await pool.execute(
-  `SELECT id, ticket_no, member_no 
-   FROM registrations 
-   WHERE id = ?`,
-  [id]
-)
-
-console.log('DEBUG DB AFTER UPDATE:', debugCheck)
-          // 🔍 [LOG VERCEL 4] - Ambil ulang data untuk membuktikan apakah data tersimpan dengan benar
-          const [afterRows] = await pool.execute(
-            `SELECT ticket_no, member_no, end_date, status 
-             FROM registrations 
-             WHERE id = ? LIMIT 1`,
-            [id]
-          );
-
-          console.log('======================================');
-          console.log('DEBUG AFTER UPDATE SYSTEM (DB STATE)');
-          console.log(afterRows);
-          console.log('======================================');
-        } else {
-          console.error('PHP Bridge mengembalikan error:', bridgeData.error || 'Unknown Error');
-          return NextResponse.json({ error: bridgeData.error || 'Gagal sinkronisasi data ke INLIS Lite' }, { status: 422 });
+        // Fix 3: Handle bridge error response properly
+        if (!bridgeData.success) {
+          throw new Error(`Bridge error: ${bridgeData.error || 'Unknown error'}`);
         }
+
+        // Fix 1: Extract member_no and end_date from bridge response
+        memberNo = bridgeData.member_no;
+        endDate = bridgeData.end_date;
+
+        console.log('======================================');
+        console.log('DEBUG BEFORE UPDATE SYSTEM');
+        console.log({
+          id,
+          original_ticket_no: reg.ticket_no,
+          memberNo,
+          endDate,
+          adminIdentity
+        });
+        console.log('======================================');
+
+        // Fix 1: Use pool.execute (NOT pool.query) to save member_no and end_date
+        await pool.execute(
+          `UPDATE registrations 
+           SET member_no = ?, end_date = ?, status = ?, approved_at = NOW(), approved_by = ?, updated_at = NOW() 
+           WHERE id = ?`,
+          [String(memberNo), String(endDate), 'Disetujui', String(adminIdentity), Number(id)]
+        );
+
+        // Verifikasi data tersimpan
+        const [afterRows] = await pool.execute(
+          `SELECT ticket_no, member_no, end_date, status 
+           FROM registrations 
+           WHERE id = ? LIMIT 1`,
+          [id]
+        );
+
+        console.log('======================================');
+        console.log('DEBUG AFTER UPDATE SYSTEM (DB STATE)');
+        console.log(afterRows);
+        console.log('======================================');
+
       } catch (bridgeErr: any) {
         console.error('Gagal terhubung ke PHP Bridge:', bridgeErr.message);
         return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
       }
 
-    // KONDISI B: JIKA STATUS DITOLAK
+      // KONDISI B: JIKA STATUS DITOLAK
     } else if (status === 'Ditolak') {
       await pool.execute(
         `UPDATE registrations 
@@ -282,14 +248,13 @@ console.log('DEBUG DB AFTER UPDATE:', debugCheck)
       )
     }
 
-    // 5. Kembalikan Response Sukses ke Frontend Dashboard
+    // Fix 4: Return proper response to client
     return NextResponse.json({
       success: true,
-      member_no: nextMemberNo,
-      message: status === 'Disetujui' && nextMemberNo
-        ? `Pendaftaran disetujui dan disinkronkan ke INLIS dengan No: ${nextMemberNo}`
-        : 'Status pendaftaran berhasil diperbarui.'
-    })
+      member_no: memberNo,
+      end_date: endDate,
+      message: 'Registrasi berhasil disinkronisasi ke INLISLite',
+    });
 
   } catch (err: any) {
     console.error('PATCH registration error:', err)
