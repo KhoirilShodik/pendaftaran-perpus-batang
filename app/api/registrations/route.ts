@@ -126,8 +126,8 @@ export async function PATCH(req: NextRequest) {
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       // =========================================================================
-      // PERBAIKAN 1: NORMALISASI FORMAT TANGGAL LAHIR (DIADAPTASI DARI PROTOTIPE)
-      // Menghindari kerusakan data pada query INSERT mysqli XAMPP Lokal akibat format ISO string
+      // NORMALISASI FORMAT TANGGAL LAHIR
+      // Menghindari kerusakan data pada query INSERT mysqli akibat format ISO string
       // =========================================================================
       let tanggalLahirBersih = reg.date_of_birth;
       if (reg.date_of_birth) {
@@ -142,7 +142,7 @@ export async function PATCH(req: NextRequest) {
         fullname: reg.fullname,
         identity_no: reg.identity_no,
         place_of_birth: reg.place_of_birth,
-        date_of_birth: tanggalLahirBersih, // Menggunakan tanggal yang sudah dibersihkan
+        date_of_birth: tanggalLahirBersih,
         address: reg.address,
         kecamatan: reg.kecamatan,
         kelurahan: reg.kelurahan,
@@ -163,7 +163,7 @@ export async function PATCH(req: NextRequest) {
         agama_id: reg.agama_id || 1,
         marital_status_id: reg.marital_status_id,
 
-        // Properti Cadangan Huruf Kapital (Bentuk Jaga-jaga getVal PHP)
+        // Properti Cadangan Huruf Kapital
         Fullname: reg.fullname,
         IdentityNo: reg.identity_no,
         PlaceOfBirth: reg.place_of_birth,
@@ -189,7 +189,7 @@ export async function PATCH(req: NextRequest) {
 
         try {
           bridgeData = JSON.parse(textData);
-          console.log('Bridge Data:', bridgeData);
+          console.log('Bridge Data Received:', bridgeData);
         } catch (jsonErr) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
@@ -198,17 +198,15 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Bridge error: ${bridgeData.error || 'Unknown error'}`);
         }
 
-        memberNo = bridgeData.member_no;
-        endDate = bridgeData.end_date;
+        // Penangkapan nilai fleksibel (Mendukung lowercase maupun PascalCase dari response PHP)
+        memberNo = bridgeData.member_no || bridgeData.MemberNo;
+        endDate = bridgeData.end_date || bridgeData.EndDate;
 
         // =========================================================================
-        // PERBAIKAN 2: STRATEGI AMAN PREPARED STATEMENT & DUPLIKASI NORMALISASI NILAI
-        // Memastikan variabel di-parsing dengan tipe data yang pas dan anti pergeseran kolom
+        // PERBAIKAN: SANITASI NILAI & METODE BINDING YANG AMAN
+        // Menggunakan pool.query() untuk mencegah pergeseran kolom di driver database
         // =========================================================================
-        // 1. Validasi string nomor anggota dan batasi maksimum 20 karakter sesuai varchar(20) perpus_web
         const safeMemberNo = memberNo ? String(memberNo).trim().substring(0, 20) : null;
-
-        // 2. Bersihkan end_date dari whitespace atau sisa string jam agar presisi masuk ke format 'date' Hostinger
         const safeEndDate = endDate && String(endDate).trim().match(/^\d{4}-\d{2}-\d{2}/)
           ? String(endDate).trim().substring(0, 10)
           : null;
@@ -220,32 +218,30 @@ export async function PATCH(req: NextRequest) {
           throw new Error("Nomor anggota atau masa aktif dari sistem INLIS tidak bernilai valid.");
         }
 
-        // Kueri parametrik terenkapsulasi secara aman dari ancaman SQL Injection dan bug buffer driver
-        const updateSuccessSql = `UPDATE registrations 
-                                  SET member_no = ?, 
-                                      end_date = ?, 
-                                      status = 'Disetujui', 
-                                      approved_at = NOW(), 
-                                      approved_by = ?, 
-                                      updated_at = NOW() 
-                                  WHERE id = ?`;
-        console.log({
+        const updateSuccessSql = `
+          UPDATE registrations 
+          SET member_no = ?, 
+              end_date = ?, 
+              status = 'Disetujui', 
+              approved_at = NOW(), 
+              approved_by = ?, 
+              updated_at = NOW() 
+          WHERE id = ?
+        `;
+
+        // Menggunakan pool.query untuk presisi pemetaan array parameter murni
+        const [result]: any = await pool.query(updateSuccessSql, [
           safeMemberNo,
           safeEndDate,
           safeAdmin,
           safeId
-        });
-        const [result]: any = await pool.execute(
-          updateSuccessSql,
-          [
-            safeMemberNo,
-            safeEndDate,
-            safeAdmin,
-            safeId
-          ]
-        );
+        ]);
 
-        console.log('UPDATE RESULT:', result);
+        console.log('UPDATE DATABASE SUKSES:', {
+          affectedRows: result.affectedRows,
+          id: safeId,
+          memberNo: safeMemberNo
+        });
         // =========================================================================
 
       } catch (bridgeErr: any) {
@@ -255,14 +251,14 @@ export async function PATCH(req: NextRequest) {
 
     } else if (status === 'Ditolak') {
       const updateRejectSql = "UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?";
-      await pool.execute(updateRejectSql, [
+      await pool.query(updateRejectSql, [
         reject_reason || 'Persyaratan tidak sesuai',
         String(adminIdentity),
         Number(id)
       ]);
     }
 
-    // RETURN RESPONS LANGSUNG
+    // RETURN RESPONS LANGSUNG KE DASHBOARD FRONTEND
     return NextResponse.json({
       success: true,
       member_no: memberNo,
