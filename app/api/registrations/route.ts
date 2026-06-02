@@ -229,12 +229,13 @@ export async function PATCH(req: NextRequest) {
   WHERE id = ?
 `;
 
-        await pool.execute(updateSuccessSql, [
-          safeMemberNo,  // → posisi 1 → member_no
-          safeEndDate,   // → posisi 2 → end_date
-          safeAdmin,     // → posisi 3 → approved_by
-          safeId         // → posisi 4 → id (WHERE)
+        await pool.query(updateSuccessSql, [
+          safeMemberNo,
+          safeEndDate,
+          safeAdmin,
+          safeId
         ]);
+
 
         // =========================================================================
 
@@ -245,11 +246,12 @@ export async function PATCH(req: NextRequest) {
 
     } else if (status === 'Ditolak') {
       const updateRejectSql = "UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?";
-      await pool.execute(updateRejectSql, [
+      await pool.query(updateRejectSql, [
         reject_reason || 'Persyaratan tidak sesuai',
         String(adminIdentity),
         Number(id)
       ]);
+
     }
 
     // RETURN RESPONS SUKSES KE FRONTEND
