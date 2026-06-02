@@ -189,6 +189,7 @@ export async function PATCH(req: NextRequest) {
 
         try {
           bridgeData = JSON.parse(textData);
+          console.log('Bridge Data:', bridgeData);
         } catch (jsonErr) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
@@ -228,13 +229,23 @@ export async function PATCH(req: NextRequest) {
                                       approved_by = ?, 
                                       updated_at = NOW() 
                                   WHERE id = ?`;
-
-        await pool.execute(updateSuccessSql, [
+        console.log({
           safeMemberNo,
           safeEndDate,
           safeAdmin,
           safeId
-        ]);
+        });
+        const [result]: any = await pool.execute(
+          updateSuccessSql,
+          [
+            safeMemberNo,
+            safeEndDate,
+            safeAdmin,
+            safeId
+          ]
+        );
+
+        console.log('UPDATE RESULT:', result);
         // =========================================================================
 
       } catch (bridgeErr: any) {
