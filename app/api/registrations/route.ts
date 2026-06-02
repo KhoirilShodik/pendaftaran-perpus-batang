@@ -215,21 +215,26 @@ export async function PATCH(req: NextRequest) {
         }
 
         // PREPARED STATEMENT KAKU: Mengunci pemetaan kolom database secara murni
-        const updateSuccessSql = `UPDATE registrations 
-                                  SET member_no = ?, 
-                                      end_date = ?, 
-                                      status = 'Disetujui', 
-                                      approved_at = NOW(), 
-                                      approved_by = ?, 
-                                      updated_at = NOW() 
-                                  WHERE id = ?`;
+        // GANTI BLOK UPDATE INI DENGAN KODE BERIKUT:
 
-        await pool.execute(updateSuccessSql, [
-          safeMemberNo, // Mengunci tanda tanya 1 -> member_no
-          safeEndDate,  // Mengunci tanda tanya 2 -> end_date
-          safeAdmin,    // Mengunci tanda tanya 3 -> approved_by
-          safeId        // Mengunci tanda tanya 4 -> WHERE id
-        ]);
+        const updateSuccessSql = `
+          UPDATE registrations 
+          SET member_no = :mno, 
+          end_date = :edate, 
+          status = 'Disetujui', 
+          approved_at = NOW(), 
+          approved_by = :admin, 
+          updated_at = NOW() 
+          WHERE id = :id
+        `;
+
+        // Ingat: pastikan safeEndDate sudah berupa string format 'YYYY-MM-DD'
+        await pool.execute(updateSuccessSql, {
+          mno: safeMemberNo,
+          edate: safeEndDate,
+          admin: safeAdmin,
+          id: safeId
+        });
         // =========================================================================
 
       } catch (bridgeErr: any) {
