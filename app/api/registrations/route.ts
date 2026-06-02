@@ -112,7 +112,7 @@ export async function PATCH(req: NextRequest) {
     let memberNo = null;
     let endDate = null;
 
-    // KONDISI A: JIKA STATUS DISETUJUI
+    // KONDISI A: JIKA STATUS DISETUJUI (APPROVE)
     if (status === 'Disetujui') {
       const [rows]: any = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
@@ -125,7 +125,7 @@ export async function PATCH(req: NextRequest) {
 
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
-      // Normalisasi format tanggal lahir
+      // Normalisasi format tanggal lahir (mengubah ISO string/Raw ke format bersih YYYY-MM-DD)
       let tanggalLahirBersih = reg.date_of_birth;
       if (reg.date_of_birth) {
         const d = new Date(reg.date_of_birth);
@@ -134,7 +134,7 @@ export async function PATCH(req: NextRequest) {
         }
       }
 
-      // Payload hibrida: Menggunakan kombinasi lowercase bawaan dan properti kapital
+      // Payload diselaraskan murni dengan kebutuhan penamaan parameter bridge & tabel registrations
       const bridgePayload = {
         fullname: reg.fullname,
         identity_no: reg.identity_no,
@@ -145,6 +145,8 @@ export async function PATCH(req: NextRequest) {
         kelurahan: reg.kelurahan,
         rt: reg.rt,
         rw: reg.rw,
+        city: reg.city || 'Batang',
+        province: reg.province || 'Jawa Tengah',
         no_hp: reg.no_hp,
         email: reg.email,
         mother_maiden_name: reg.mother_maiden_name,
@@ -158,15 +160,7 @@ export async function PATCH(req: NextRequest) {
         education_level_id: reg.education_level_id || 1,
         sex_id: reg.sex_id || 1,
         agama_id: reg.agama_id || 1,
-        marital_status_id: reg.marital_status_id,
-
-        // Properti Cadangan Huruf Kapital
-        Fullname: reg.fullname,
-        IdentityNo: reg.identity_no,
-        PlaceOfBirth: reg.place_of_birth,
-        DateOfBirth: tanggalLahirBersih,
-        Address: reg.address,
-        PhotoUrl: reg.pas_foto_url
+        marital_status_id: reg.marital_status_id
       };
 
       try {
@@ -187,26 +181,28 @@ export async function PATCH(req: NextRequest) {
         try {
           bridgeData = JSON.parse(textData);
         } catch (jsonErr) {
-          throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
+          throw new Error(`Respons PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 50)}`);
         }
 
         if (!bridgeData.success) {
-          throw new Error(`Bridge error: ${bridgeData.error || 'Unknown error'}`);
+          throw new Error(`Sistem INLIS lokal gagal mendaftarkan: ${bridgeData.error || 'Eror Tidak Diketahui'}`);
         }
 
         memberNo = bridgeData.member_no;
         endDate = bridgeData.end_date;
 
         // =========================================================================
-        // PERBAIKAN STABILITAS: PENGIKATAN VARIABEL STRATIFIKASI
+        // STRATEGI PENGAMANAN VARIABEL STRATIFIKASI (Mencegah Null & Kolom Geser)
         // =========================================================================
-        const safeMemberNo = memberNo ? String(memberNo).trim().substring(0, 20) : null;
+        // Potong maksimum 50 Karakter sesuai alokasi varchar(50) kolom member_no registrations
+        const safeMemberNo = memberNo ? String(memberNo).trim().substring(0, 50) : null;
 
-        // Fallback otomatis jika format tanggal dari INLIS meleset demi kestabilan DB Hostinger
+        // Fallback otomatis Tanggal Hari Ini + 3 Tahun jika PHP mengembalikan nilai rusak/kosong
         const tanggalDefault = new Date();
         tanggalDefault.setFullYear(tanggalDefault.getFullYear() + 3);
         const fallbackEndDate = tanggalDefault.toISOString().split('T')[0];
 
+        // Format tanggal 'date' Hostinger harus YYYY-MM-DD murni tanpa jam
         const safeEndDate = endDate && String(endDate).trim().match(/^\d{4}-\d{2}-\d{2}/)
           ? String(endDate).trim().substring(0, 10)
           : fallbackEndDate;
@@ -215,10 +211,10 @@ export async function PATCH(req: NextRequest) {
         const safeId = Number(id);
 
         if (!safeMemberNo) {
-          throw new Error("Nomor anggota dari sistem INLIS tidak bernilai valid.");
+          throw new Error("Nomor kartu anggota dari sistem INLIS Lite tidak valid atau kosong.");
         }
 
-        // Kueri parametrik terenkapsulasi murni tanpa sisa string literal (PASTI MASUK KE KAMAR MASING-MASING)
+        // PREPARED STATEMENT KAKU: Mengunci pemetaan kolom database secara murni
         const updateSuccessSql = `UPDATE registrations 
                                   SET member_no = ?, 
                                       end_date = ?, 
@@ -227,12 +223,12 @@ export async function PATCH(req: NextRequest) {
                                       approved_by = ?, 
                                       updated_at = NOW() 
                                   WHERE id = ?`;
-                                  
+
         await pool.execute(updateSuccessSql, [
-          safeMemberNo, // Parameter 1 mengisi member_no
-          safeEndDate,  // Parameter 2 mengisi end_date
-          safeAdmin,    // Parameter 3 mengisi approved_by
-          safeId        // Parameter 4 mengisi WHERE id
+          safeMemberNo, // Mengunci tanda tanya 1 -> member_no
+          safeEndDate,  // Mengunci tanda tanya 2 -> end_date
+          safeAdmin,    // Mengunci tanda tanya 3 -> approved_by
+          safeId        // Mengunci tanda tanya 4 -> WHERE id
         ]);
         // =========================================================================
 
@@ -250,12 +246,12 @@ export async function PATCH(req: NextRequest) {
       ]);
     }
 
-    // RETURN RESPONS LANGSUNG
+    // RETURN RESPONS SUKSES KE FRONTEND
     return NextResponse.json({
       success: true,
       member_no: memberNo,
       end_date: endDate,
-      message: 'Proses pembaruan status registrasi berhasil disinkronisasi',
+      message: 'Proses sinkronisasi status pendaftaran berhasil diselesaikan',
     });
 
   } catch (err: any) {
