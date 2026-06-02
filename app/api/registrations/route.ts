@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ data: data[0] })
     }
 
-    // DISESUAIKAN: Ambil kolom member_no dan end_date menggunakan huruf kecil
     const [rows] = await pool.execute(
       `SELECT id, ticket_no, member_no, end_date, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, 
               rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, 
@@ -115,7 +114,6 @@ export async function PATCH(req: NextRequest) {
 
     // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
-      // Fetch data registrasi untuk dikirim ke PHP
       const [rows]: any = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
@@ -127,33 +125,54 @@ export async function PATCH(req: NextRequest) {
 
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
-      try {
-        const bridgePayload = {
-          fullname: reg.fullname,
-          identity_no: reg.identity_no,
-          place_of_birth: reg.place_of_birth,
-          date_of_birth: reg.date_of_birth,
-          address: reg.address,
-          kecamatan: reg.kecamatan,
-          kelurahan: reg.kelurahan,
-          rt: reg.rt,
-          rw: reg.rw,
-          no_hp: reg.no_hp,
-          email: reg.email,
-          mother_maiden_name: reg.mother_maiden_name,
-          nama_darurat: reg.nama_darurat,
-          telp_darurat: reg.telp_darurat,
-          status_hubungan_darurat: reg.status_hubungan_darurat,
-          institution_name: reg.institution_name,
-          photo_url: reg.pas_foto_url,
-          jenis_anggota_id: Number(reg.job_id) === 1 ? 1 : 13,
-          identity_type_id: reg.identity_type_id || 1,
-          education_level_id: reg.education_level_id || 1,
-          sex_id: reg.sex_id || 1,
-          agama_id: reg.agama_id || 1,
-          marital_status_id: reg.marital_status_id
-        };
+      // =========================================================================
+      // PERBAIKAN 1: NORMALISASI FORMAT TANGGAL LAHIR (DIADAPTASI DARI PROTOTIPE)
+      // Menghindari kerusakan data pada query INSERT mysqli XAMPP Lokal akibat format ISO string
+      // =========================================================================
+      let tanggalLahirBersih = reg.date_of_birth;
+      if (reg.date_of_birth) {
+        const d = new Date(reg.date_of_birth);
+        if (!isNaN(d.getTime())) {
+          tanggalLahirBersih = d.toISOString().split('T')[0];
+        }
+      }
 
+      // Payload hibrida: Menggunakan kombinasi lowercase bawaan dan properti kapital
+      const bridgePayload = {
+        fullname: reg.fullname,
+        identity_no: reg.identity_no,
+        place_of_birth: reg.place_of_birth,
+        date_of_birth: tanggalLahirBersih, // Menggunakan tanggal yang sudah dibersihkan
+        address: reg.address,
+        kecamatan: reg.kecamatan,
+        kelurahan: reg.kelurahan,
+        rt: reg.rt,
+        rw: reg.rw,
+        no_hp: reg.no_hp,
+        email: reg.email,
+        mother_maiden_name: reg.mother_maiden_name,
+        nama_darurat: reg.nama_darurat,
+        telp_darurat: reg.telp_darurat,
+        status_hubungan_darurat: reg.status_hubungan_darurat,
+        institution_name: reg.institution_name,
+        photo_url: reg.pas_foto_url,
+        jenis_anggota_id: Number(reg.job_id) === 1 ? 1 : 13,
+        identity_type_id: reg.identity_type_id || 1,
+        education_level_id: reg.education_level_id || 1,
+        sex_id: reg.sex_id || 1,
+        agama_id: reg.agama_id || 1,
+        marital_status_id: reg.marital_status_id,
+
+        // Properti Cadangan Huruf Kapital (Bentuk Jaga-jaga getVal PHP)
+        Fullname: reg.fullname,
+        IdentityNo: reg.identity_no,
+        PlaceOfBirth: reg.place_of_birth,
+        DateOfBirth: tanggalLahirBersih,
+        Address: reg.address,
+        PhotoUrl: reg.pas_foto_url
+      };
+
+      try {
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
           headers: {
@@ -182,19 +201,28 @@ export async function PATCH(req: NextRequest) {
         endDate = bridgeData.end_date;
 
         // =========================================================================
-        // PERBAIKAN UTAMA: INJEKSI NILAI SECARA LANGSUNG (ANTI PERGESERAN KOLOM)
+        // PERBAIKAN 2: STRATEGI AMAN PREPARED STATEMENT & DUPLIKASI NORMALISASI NILAI
+        // Memastikan variabel di-parsing dengan tipe data yang pas dan anti pergeseran kolom
         // =========================================================================
-        const safeMemberNo = String(memberNo).trim();
-        const safeEndDate = String(endDate).trim();
+        // 1. Validasi string nomor anggota dan batasi maksimum 20 karakter sesuai varchar(20) perpus_web
+        const safeMemberNo = memberNo ? String(memberNo).trim().substring(0, 20) : null;
+
+        // 2. Bersihkan end_date dari whitespace atau sisa string jam agar presisi masuk ke format 'date' Hostinger
+        const safeEndDate = endDate && String(endDate).trim().match(/^\d{4}-\d{2}-\d{2}/)
+          ? String(endDate).trim().substring(0, 10)
+          : null;
+
         const safeAdmin = String(adminIdentity).trim();
         const safeId = Number(id);
 
-        // Kita cetak nilainya langsung ke dalam teks perintah string SQL kueri.
-        // Dengan cara ini, MySQL wajib memasukkan data ke kolom bernama teks tersebut, 
-        // dan tidak akan meleset salah paham ke kolom urutan ke-2 (ticket_no).
+        if (!safeMemberNo || !safeEndDate) {
+          throw new Error("Nomor anggota atau masa aktif dari sistem INLIS tidak bernilai valid.");
+        }
+
+        // Kueri parametrik terenkapsulasi secara aman dari ancaman SQL Injection dan bug buffer driver
         const updateSuccessSql = `UPDATE registrations 
-                                  SET member_no = '${safeMemberNo}', 
-                                      end_date = '${safeEndDate}', 
+                                  SET member_no = ?, 
+                                      end_date = ?, 
                                       status = 'Disetujui', 
                                       approved_at = NOW(), 
                                       approved_by = ?, 
@@ -202,6 +230,8 @@ export async function PATCH(req: NextRequest) {
                                   WHERE id = ?`;
 
         await pool.execute(updateSuccessSql, [
+          safeMemberNo,
+          safeEndDate,
           safeAdmin,
           safeId
         ]);
@@ -212,7 +242,6 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: `PHP Bridge Error: ${bridgeErr.message}` }, { status: 502 });
       }
 
-      // KONDISI B: JIKA STATUS DITOLAK
     } else if (status === 'Ditolak') {
       const updateRejectSql = "UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?";
       await pool.execute(updateRejectSql, [
