@@ -115,8 +115,7 @@ export async function PATCH(req: NextRequest) {
 
     // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
-
-      // Fix 2: Fetch full registration row from MySQL first
+      // Fetch data registrasi untuk dikirim ke PHP
       const [rows]: any = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
         [id]
@@ -129,7 +128,6 @@ export async function PATCH(req: NextRequest) {
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
       try {
-        // Fix 2: Build bridgePayload with EXACT keys expected by perpus-bridge.php
         const bridgePayload = {
           fullname: reg.fullname,
           identity_no: reg.identity_no,
@@ -156,7 +154,6 @@ export async function PATCH(req: NextRequest) {
           marital_status_id: reg.marital_status_id
         };
 
-        // 2. Kirim Data Lengkap ke PHP Bridge (INLIS Lite Lokal)
         const bridgeResponse = await fetch(BRIDGE_URL, {
           method: 'POST',
           headers: {
@@ -169,66 +166,29 @@ export async function PATCH(req: NextRequest) {
         });
 
         const textData = await bridgeResponse.text();
-
-        console.log('\n===========================================');
-        console.log('=== [DEBUG] TEXT MENTAH DARI PHP BRIDGE ===');
-        console.log(textData);
-        console.log('===========================================\n');
-
         let bridgeData: any;
 
         try {
           bridgeData = JSON.parse(textData);
-
-          console.log('======================================');
-          console.log('=== [DEBUG] OBJECT JSON PHP BRIDGE ===');
-          console.log(JSON.stringify(bridgeData, null, 2));
-          console.log('======================================\n');
-
         } catch (jsonErr) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
 
-        // Fix 3: Handle bridge error response properly
         if (!bridgeData.success) {
           throw new Error(`Bridge error: ${bridgeData.error || 'Unknown error'}`);
         }
 
-        // Fix 1: Extract member_no and end_date from bridge response
         memberNo = bridgeData.member_no;
         endDate = bridgeData.end_date;
 
-        console.log('======================================');
-        console.log('DEBUG BEFORE UPDATE SYSTEM');
-        console.log({
-          id,
-          original_ticket_no: reg.ticket_no,
-          memberNo,
-          endDate,
-          adminIdentity
-        });
-        console.log('======================================');
-
-        // Fix 1: Use pool.execute (NOT pool.query) to save member_no and end_date
-        await pool.execute(
-          `UPDATE registrations 
-           SET member_no = ?, end_date = ?, status = ?, approved_at = NOW(), approved_by = ?, updated_at = NOW() 
-           WHERE id = ?`,
-          [String(memberNo), String(endDate), 'Disetujui', String(adminIdentity), Number(id)]
-        );
-
-        // Verifikasi data tersimpan
-        const [afterRows] = await pool.execute(
-          `SELECT ticket_no, member_no, end_date, status 
-           FROM registrations 
-           WHERE id = ? LIMIT 1`,
-          [id]
-        );
-
-        console.log('======================================');
-        console.log('DEBUG AFTER UPDATE SYSTEM (DB STATE)');
-        console.log(afterRows);
-        console.log('======================================');
+        // KUNCI COCOK: Eksekusi update data pendaftaran khusus "Disetujui" di sini menggunakan baris lurus terisolasi
+        const updateSuccessSql = "UPDATE registrations SET member_no = ?, end_date = ?, status = 'Disetujui', approved_at = NOW(), approved_by = ?, updated_at = NOW() WHERE id = ?";
+        await pool.execute(updateSuccessSql, [
+          String(memberNo),
+          String(endDate),
+          String(adminIdentity),
+          Number(id)
+        ]);
 
       } catch (bridgeErr: any) {
         console.error('Gagal terhubung ke PHP Bridge:', bridgeErr.message);
@@ -237,23 +197,20 @@ export async function PATCH(req: NextRequest) {
 
       // KONDISI B: JIKA STATUS DITOLAK
     } else if (status === 'Ditolak') {
-      await pool.execute(
-        `UPDATE registrations 
-         SET status = 'Ditolak', 
-             reject_reason = ?, 
-             approved_by = ?, 
-             updated_at = NOW() 
-         WHERE id = ?`,
-        [reject_reason || 'Persyaratan tidak sesuai', adminIdentity, id]
-      )
+      const updateRejectSql = "UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?";
+      await pool.execute(updateRejectSql, [
+        reject_reason || 'Persyaratan tidak sesuai',
+        String(adminIdentity),
+        Number(id)
+      ]);
     }
 
-    // Fix 4: Return proper response to client
+    // RETURN RESPONS LANGSUNG (Tanpa ada kueri UPDATE tambahan apa pun lagi di bawahnya!)
     return NextResponse.json({
       success: true,
       member_no: memberNo,
       end_date: endDate,
-      message: 'Registrasi berhasil disinkronisasi ke INLISLite',
+      message: 'Proses pembaruan status registrasi berhasil disinkronisasi',
     });
 
   } catch (err: any) {
