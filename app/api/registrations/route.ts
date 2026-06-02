@@ -112,7 +112,7 @@ export async function PATCH(req: NextRequest) {
     let memberNo = null;
     let endDate = null;
 
-    // KONDISI A: JIKA STATUS DISETUJUI (APPROVE)
+    // KONDISI A: JIKA STATUS DISETUJUI
     if (status === 'Disetujui') {
       const [rows]: any = await pool.execute(
         `SELECT * FROM registrations WHERE id = ? LIMIT 1`,
@@ -125,7 +125,7 @@ export async function PATCH(req: NextRequest) {
 
       const BRIDGE_URL = 'https://bridge.pendaftaran-perpus-batang.my.id/perpus-bridge.php?action=insert-member';
 
-      // Normalisasi format tanggal lahir untuk kestabilan INLIS Lite lokal
+      // Normalisasi format tanggal lahir
       let tanggalLahirBersih = reg.date_of_birth;
       if (reg.date_of_birth) {
         const d = new Date(reg.date_of_birth);
@@ -134,7 +134,7 @@ export async function PATCH(req: NextRequest) {
         }
       }
 
-      // Payload hibrida menuju PHP Bridge
+      // Payload hibrida: Menggunakan kombinasi lowercase bawaan dan properti kapital
       const bridgePayload = {
         fullname: reg.fullname,
         identity_no: reg.identity_no,
@@ -186,7 +186,6 @@ export async function PATCH(req: NextRequest) {
 
         try {
           bridgeData = JSON.parse(textData);
-          console.log('Bridge Data Received:', bridgeData);
         } catch (jsonErr) {
           throw new Error(`Response PHP Bridge bukan JSON valid. Output: ${textData.substring(0, 100)}`);
         }
@@ -195,52 +194,46 @@ export async function PATCH(req: NextRequest) {
           throw new Error(`Bridge error: ${bridgeData.error || 'Unknown error'}`);
         }
 
-        // Penangkapan nilai fleksibel (Mendukung lowercase maupun PascalCase dari PHP)
-        memberNo = bridgeData.member_no || bridgeData.MemberNo;
-        endDate = bridgeData.end_date || bridgeData.EndDate;
+        memberNo = bridgeData.member_no;
+        endDate = bridgeData.end_date;
 
         // =========================================================================
-        // 🟢 PERBAIKAN UTAMA: SANITASI MUTLAK & STRATEGI EXPLICIT LITERAL QUERY
-        // Membypass bug penukaran indeks tanda tanya oleh driver database pooling Vercel
+        // PERBAIKAN STABILITAS: PENGIKATAN VARIABEL STRATIFIKASI
         // =========================================================================
         const safeMemberNo = memberNo ? String(memberNo).trim().substring(0, 20) : null;
+
+        // Fallback otomatis jika format tanggal dari INLIS meleset demi kestabilan DB Hostinger
+        const tanggalDefault = new Date();
+        tanggalDefault.setFullYear(tanggalDefault.getFullYear() + 3);
+        const fallbackEndDate = tanggalDefault.toISOString().split('T')[0];
+
         const safeEndDate = endDate && String(endDate).trim().match(/^\d{4}-\d{2}-\d{2}/)
           ? String(endDate).trim().substring(0, 10)
-          : null;
+          : fallbackEndDate;
 
-        // Proteksi SQL Injection internal dengan meng-escape tanda petik satu (') jika ada
-        const safeAdmin = String(adminIdentity).trim().replace(/'/g, "''");
+        const safeAdmin = String(adminIdentity).trim();
         const safeId = Number(id);
 
-        if (!safeMemberNo || !safeEndDate || isNaN(safeId)) {
-          throw new Error("Nomor anggota atau masa aktif dari sistem INLIS tidak bernilai valid.");
+        if (!safeMemberNo) {
+          throw new Error("Nomor anggota dari sistem INLIS tidak bernilai valid.");
         }
 
-        // Menyusun kueri secara literal tanpa tanda tanya (?). Kolom dipetakan secara absolut.
-        const susunanKueriEksplisit = `
-          UPDATE registrations 
-          SET 
-            member_no = '${safeMemberNo}', 
-            end_date = '${safeEndDate}', 
-            status = 'Disetujui', 
-            approved_by = '${safeAdmin}',
-            approved_at = NOW(), 
-            updated_at = NOW() 
-          WHERE id = ${safeId}
-        `;
-
-        console.log("MENGEKSEKUSI KUERI STRATEGIS NO-BINDING:");
-        console.log(susunanKueriEksplisit);
-
-        // Eksekusi string SQL langsung menggunakan pool.query()
-        const [result]: any = await pool.query(susunanKueriEksplisit);
-
-        console.log('UPDATE DATABASE HOSTINGER BERHASIL:', {
-          affectedRows: result?.affectedRows,
-          idTarget: safeId,
-          nomorAnggota: safeMemberNo,
-          masaBerlaku: safeEndDate
-        });
+        // Kueri parametrik terenkapsulasi murni tanpa sisa string literal (PASTI MASUK KE KAMAR MASING-MASING)
+        const updateSuccessSql = `UPDATE registrations 
+                                  SET member_no = ?, 
+                                      end_date = ?, 
+                                      status = 'Disetujui', 
+                                      approved_at = NOW(), 
+                                      approved_by = ?, 
+                                      updated_at = NOW() 
+                                  WHERE id = ?`;
+                                  
+        await pool.execute(updateSuccessSql, [
+          safeMemberNo, // Parameter 1 mengisi member_no
+          safeEndDate,  // Parameter 2 mengisi end_date
+          safeAdmin,    // Parameter 3 mengisi approved_by
+          safeId        // Parameter 4 mengisi WHERE id
+        ]);
         // =========================================================================
 
       } catch (bridgeErr: any) {
@@ -249,23 +242,15 @@ export async function PATCH(req: NextRequest) {
       }
 
     } else if (status === 'Ditolak') {
-      // Terapkan hal yang sama pada proses penolakan agar aman
-      const safeAdmin = String(adminIdentity).trim().replace(/'/g, "''");
-      const safeReason = (reject_reason || 'Persyaratan tidak sesuai').replace(/'/g, "''");
-      const safeId = Number(id);
-
-      const updateRejectSql = `
-        UPDATE registrations 
-        SET status = 'Ditolak', 
-            reject_reason = '${safeReason}', 
-            approved_by = '${safeAdmin}', 
-            updated_at = NOW() 
-        WHERE id = ${safeId}
-      `;
-      await pool.query(updateRejectSql);
+      const updateRejectSql = "UPDATE registrations SET status = 'Ditolak', reject_reason = ?, approved_by = ?, updated_at = NOW() WHERE id = ?";
+      await pool.execute(updateRejectSql, [
+        reject_reason || 'Persyaratan tidak sesuai',
+        String(adminIdentity),
+        Number(id)
+      ]);
     }
 
-    // RETURN RESPONS LANGSUNG KE FRONTEND
+    // RETURN RESPONS LANGSUNG
     return NextResponse.json({
       success: true,
       member_no: memberNo,
