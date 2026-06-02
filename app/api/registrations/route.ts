@@ -181,14 +181,31 @@ export async function PATCH(req: NextRequest) {
         memberNo = bridgeData.member_no;
         endDate = bridgeData.end_date;
 
-        // KUNCI COCOK: Eksekusi update data pendaftaran khusus "Disetujui" di sini menggunakan baris lurus terisolasi
-        const updateSuccessSql = "UPDATE registrations SET member_no = ?, end_date = ?, status = 'Disetujui', approved_at = NOW(), approved_by = ?, updated_at = NOW() WHERE id = ?";
+        // =========================================================================
+        // PERBAIKAN UTAMA: INJEKSI NILAI SECARA LANGSUNG (ANTI PERGESERAN KOLOM)
+        // =========================================================================
+        const safeMemberNo = String(memberNo).trim();
+        const safeEndDate = String(endDate).trim();
+        const safeAdmin = String(adminIdentity).trim();
+        const safeId = Number(id);
+
+        // Kita cetak nilainya langsung ke dalam teks perintah string SQL kueri.
+        // Dengan cara ini, MySQL wajib memasukkan data ke kolom bernama teks tersebut, 
+        // dan tidak akan meleset salah paham ke kolom urutan ke-2 (ticket_no).
+        const updateSuccessSql = `UPDATE registrations 
+                                  SET member_no = '${safeMemberNo}', 
+                                      end_date = '${safeEndDate}', 
+                                      status = 'Disetujui', 
+                                      approved_at = NOW(), 
+                                      approved_by = ?, 
+                                      updated_at = NOW() 
+                                  WHERE id = ?`;
+
         await pool.execute(updateSuccessSql, [
-          String(memberNo),
-          String(endDate),
-          String(adminIdentity),
-          Number(id)
+          safeAdmin,
+          safeId
         ]);
+        // =========================================================================
 
       } catch (bridgeErr: any) {
         console.error('Gagal terhubung ke PHP Bridge:', bridgeErr.message);
@@ -205,7 +222,7 @@ export async function PATCH(req: NextRequest) {
       ]);
     }
 
-    // RETURN RESPONS LANGSUNG (Tanpa ada kueri UPDATE tambahan apa pun lagi di bawahnya!)
+    // RETURN RESPONS LANGSUNG
     return NextResponse.json({
       success: true,
       member_no: memberNo,
