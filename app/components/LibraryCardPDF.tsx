@@ -3,7 +3,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica', // Set font utama tingkat halaman
+    fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -22,101 +22,68 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  // --- Header Lapisan Atas ---
-  headerWrap: {
-    flexDirection: 'row',
-    position: 'absolute',
-    top: 6,
-    left: 8,
-    right: 8,
-    alignItems: 'center',
-  },
-  logoKabupaten: {
-    width: 14,
-    height: 18,
-    marginRight: 5,
-  },
-  headerTextContainer: {
-    flexDirection: 'column',
-  },
-  titleUtama: {
-    fontSize: 7,
-    fontFamily: 'Helvetica-Bold', // Pengganti fontWeight: 'bold' bawaan PDF
-    color: '#0f172a',
-    letterSpacing: 0.1,
-  },
-  titleAlamat: {
-    fontSize: 4.2,
-    color: '#334155',
-    marginTop: 1,
-  },
-  // --- Label "KARTU ANGGOTA PERPUSTAKAAN GRHA PUSTALOKA" di Tengah Bodi ---
-  judulKartuTengah: {
-    position: 'absolute',
-    top: 55,
-    left: 0,
-    right: 0,
-    fontSize: 6.2,
-    fontFamily: 'Helvetica-Bold',
-    color: '#1e3a5f',
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
-  // --- Kotak Hitam Kanan Atas (Jenis Anggota) ---
+
+  // --- Badge Jenis Anggota (kotak hitam, pojok kanan atas) ---
   badgeJenisWrap: {
     position: 'absolute',
-    top: 33,
+    top: 8,
     right: 8,
     backgroundColor: '#1e293b',
-    paddingVertical: 1.5,
-    paddingHorizontal: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
     borderRadius: 2,
   },
   badgeJenisText: {
-    fontSize: 5,
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     color: '#ffffff',
   },
-  // --- Tata Letak Meta Nomor Anggota & Masa Berlaku ---
-  metaTopWrap: {
+
+  // --- Nomor Anggota (kanan, di bawah badge) ---
+  nomorAnggotaText: {
     position: 'absolute',
-    top: 44,
+    top: 26,
     right: 8,
-    alignItems: 'flex-end',
-  },
-  metaValueNo: {
-    fontSize: 8.5,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
     color: '#0f172a',
   },
+
+  // --- Berlaku Hingga (kanan, di bawah nomor) ---
+  berlakuHinggaWrap: {
+    position: 'absolute',
+    top: 42,
+    right: 8,
+    alignItems: 'center',
+    width: 50,
+  },
   berlakuHinggaLabel: {
-    fontSize: 4.2,
-    color: '#475569',
-    marginTop: 18, // Menggeser label ke bawah agar duduk manis terpusat di atas foto
+    fontSize: 5,
+    color: '#334155',
     textAlign: 'center',
-    width: 36.8,
   },
   berlakuHinggaDate: {
-    fontSize: 5.5,
+    fontSize: 7,
     fontFamily: 'Helvetica-Bold',
     color: '#1e293b',
     textAlign: 'center',
-    width: 36.8,
   },
-  // --- Nama Besar Pemilik Kartu (Kiri Tengah) ---
+
+  // --- Nama Besar Pemilik Kartu ---
   namaBesarText: {
     position: 'absolute',
-    top: 74,
+    top: 82,
     left: 8,
-    width: 145,
-    fontSize: 10.5,
+    width: 155,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: '#1e3a5f',
   },
-  // --- Barcode Terproteksi Kotak Kontras Putih ---
+
+  // --- Barcode Linear (Code128) ---
   barcodeContainer: {
     position: 'absolute',
-    bottom: 13,
+    bottom: 16,
     left: 8,
     alignItems: 'center',
     backgroundColor: '#ffffff',
@@ -125,26 +92,28 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   barcodeImg: {
-    width: 82,
-    height: 16,
+    width: 140,
+    height: 22,
   },
   barcodeSubText: {
-    fontSize: 5.5,
+    fontSize: 6,
     fontFamily: 'Helvetica-Bold',
     color: '#000000',
     marginTop: 1,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
+    textAlign: 'center',
   },
-  // --- Pas Foto Anggota ---
+
+  // --- Foto Anggota ---
   photoFrame: {
     position: 'absolute',
-    bottom: 13,
+    top: 55,
     right: 8,
-    width: 36.8,
-    height: 48.2,
+    width: 44,
+    height: 58,
     borderRadius: 1,
     overflow: 'hidden',
-    borderWidth: 0.4,
+    borderWidth: 0.5,
     borderColor: '#94a3b8',
     backgroundColor: '#f1f5f9',
   },
@@ -157,23 +126,7 @@ const styles = StyleSheet.create({
     fontSize: 4.5,
     color: '#94a3b8',
     textAlign: 'center',
-    marginTop: 20,
-  },
-  // --- Media Sosial Resmi ---
-  footerSosmedWrap: {
-    position: 'absolute',
-    bottom: 4,
-    left: 8,
-    right: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderTopWidth: 0.3,
-    borderTopColor: '#94a3b8',
-    paddingTop: 1.5,
-  },
-  footerText: {
-    fontSize: 3.5,
-    color: '#475569',
+    marginTop: 22,
   },
 });
 
@@ -190,7 +143,6 @@ interface LibraryCardPDFProps {
 }
 
 export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: LibraryCardPDFProps) {
-  const logoPath = `${baseUrl}/logo-batang.png`;
   const backgroundCardPath = `${baseUrl}/bg-kartu-v3.png`;
 
   return (
@@ -198,39 +150,31 @@ export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: Libr
       <Page size={[242.6, 153.0]} style={styles.page}>
         <View style={styles.cardContainer}>
 
+          {/* Background — sudah mengandung logo, header, label kartu, footer sosmed */}
           <Image src={backgroundCardPath} style={styles.backgroundImage} />
 
-          {/* Header Instansi Dua Baris */}
-          <View style={styles.headerWrap}>
-            <Image src={logoPath} style={styles.logoKabupaten} />
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.titleUtama}>DINAS PERPUSTAKAAN DAN KEARSIPAN</Text>
-              <Text style={styles.titleUtama}>KABUPATEN BATANG</Text>
-              <Text style={styles.titleAlamat}>Jl. Dr. Wahidin No. 54 Kauman, Batang, Jawa Tengah 51215</Text>
-            </View>
-          </View>
-
-          {/* Judul Utama Kartu Mandiri Di Tengah sesuai Gambar Desain */}
-          <Text style={styles.judulKartuTengah}>
-            KARTU ANGGOTA PERPUSTAKAAN GRHA PUSTALOKA
-          </Text>
-
+          {/* Badge Jenis Anggota */}
           <View style={styles.badgeJenisWrap}>
             <Text style={styles.badgeJenisText}>{member.jenisAnggota}</Text>
           </View>
 
-          <View style={styles.metaTopWrap}>
-            <Text style={styles.metaValueNo}>{member.memberNo}</Text>
+          {/* Nomor Anggota */}
+          <Text style={styles.nomorAnggotaText}>{member.memberNo}</Text>
+
+          {/* Berlaku Hingga */}
+          <View style={styles.berlakuHinggaWrap}>
             <Text style={styles.berlakuHinggaLabel}>Berlaku Hingga</Text>
             <Text style={styles.berlakuHinggaDate}>{member.endDate}</Text>
           </View>
 
+          {/* Nama Anggota */}
           <Text style={styles.namaBesarText}>
             {member.fullname.length > 45
               ? `${member.fullname.substring(0, 42).toUpperCase()}...`
               : member.fullname.toUpperCase()}
           </Text>
 
+          {/* Barcode Linear Code128 */}
           <View style={styles.barcodeContainer}>
             {barcodeUrl ? (
               <Image src={barcodeUrl} style={styles.barcodeImg} />
@@ -238,6 +182,7 @@ export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: Libr
             <Text style={styles.barcodeSubText}>{member.memberNo}</Text>
           </View>
 
+          {/* Foto Anggota */}
           <View style={styles.photoFrame}>
             {pasFotoUrl ? (
               <Image src={pasFotoUrl} style={styles.photoReal} />
@@ -245,8 +190,6 @@ export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: Libr
               <Text style={styles.noPhotoText}>PAS FOTO</Text>
             )}
           </View>
-
-
 
         </View>
       </Page>
