@@ -219,7 +219,7 @@ export async function PATCH(req: NextRequest) {
 
         // ✅ BENAR — mysql2 mendukung ini
         const updateSuccessSql = `
-  UPDATE /* proxy-bypass-2026-v2 */ registrations 
+  UPDATE registrations 
   SET member_no = ?, 
       end_date = ?, 
       status = 'Disetujui', 
