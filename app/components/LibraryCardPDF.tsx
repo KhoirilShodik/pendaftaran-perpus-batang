@@ -191,7 +191,7 @@ interface LibraryCardPDFProps {
 
 export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: LibraryCardPDFProps) {
   const logoPath = `${baseUrl}/logo-batang.png`;
-  const backgroundCardPath = `${baseUrl}/bg-kartu-baru.jpg`;
+  const backgroundCardPath = `${baseUrl}/bg-kartu-v3.jpg`;
 
   return (
     <Document title={`KARTU ANGGOTA - ${member.memberNo}`}>
