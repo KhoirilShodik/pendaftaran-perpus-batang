@@ -246,12 +246,7 @@ export function LibraryCardPDF({ member, barcodeUrl, pasFotoUrl, baseUrl }: Libr
             )}
           </View>
 
-          <View style={styles.footerSosmedWrap}>
-            <Text style={styles.footerText}>IG: @disperpuska_kab.batang</Text>
-            <Text style={styles.footerText}>FB: Dinas Perpustakaan dan Kearsipan Kab. Batang</Text>
-            <Text style={styles.footerText}>YT: Disperpuska Chanel</Text>
-            <Text style={styles.footerText}>Web: disperpuska.batangkab.go.id</Text>
-          </View>
+
 
         </View>
       </Page>
