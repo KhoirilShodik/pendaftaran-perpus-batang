@@ -8,11 +8,11 @@ import { LibraryCardPDF } from '@/app/components/LibraryCardPDF'
 
 interface StatusCardProps {
   result: Partial<Registration>
-  qrCodeData: string
+  barcodeData: string
   formatDate: (iso: string | null | undefined) => string
 }
 
-export function StatusCard({ result, qrCodeData, formatDate }: StatusCardProps) {
+export function StatusCard({ result, barcodeData, formatDate }: StatusCardProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
       {/* MENUNGGU */}
@@ -112,7 +112,7 @@ export function StatusCard({ result, qrCodeData, formatDate }: StatusCardProps) 
 
             {/* AREA UTAMA DOWNLOAD KARTU DENGAN PROXY IMAGE */}
             <div className="pt-4">
-              {qrCodeData ? (
+              {barcodeData ? (
                 (() => {
                   const originalFotoUrl = result.pasFotoUrl || '';
                   const proxiedFotoUrl = originalFotoUrl 
@@ -141,7 +141,7 @@ export function StatusCard({ result, qrCodeData, formatDate }: StatusCardProps) 
                                 })()
                               : '-',
                           }}
-                          barcodeUrl={qrCodeData}
+                          barcodeUrl={barcodeData}
                           pasFotoUrl={proxiedFotoUrl}
                           baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
                         />

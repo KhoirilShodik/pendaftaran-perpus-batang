@@ -462,7 +462,7 @@ graph TD
 │  │  Custom Hooks (hooks/)                                      │ │
 │  │  • useRegistrationForm → validasi + orchestrate submit      │ │
 │  │  • useRegistrations   → CRUD + approve/reject + notify      │ │
-│  │  • useStatusSearch    → pencarian status + QR generate      │ │
+│  │  • useStatusSearch    → pencarian status + Barcode generate │ │
 │  └────────────────────────────┬─────────────────────────────────┘ │
 │                               │ fetch('/api/...')                  │
 │  ┌─── API / CONTROLLER ───────▼────────────────────────────────┐ │
@@ -567,8 +567,11 @@ Sistem menggunakan **React State** murni (tanpa Redux/Zustand):
 |----------------|-------|--------|
 | `useRegistrationForm` | Form pendaftaran | formData, errors, isSubmitting, isSuccess, ticketNumber, pasFoto/fotoKtp |
 | `useRegistrations` | Dashboard admin | registrations[], isLoadingData, selectedReg, showRejectForm, rejectReason |
-| `useStatusSearch` | Halaman cek status | ticketInput, searchState, result, qrCodeData |
+| `useStatusSearch` | Halaman cek status | ticketInput, searchState, result, barcodeData |
 | `AdminDashboard` | Auth + UI admin | isLoggedIn, isLoadingAuth, userRole, activeTab, activeFilter, searchQuery, toast |
+
+**Catatan Alur Data Cek Status:**
+Pengolahan data pencarian status dan generasi `barcodeData` (via `bwip-js`) sengaja diekstraksi ke dalam *custom hook* `useStatusSearch`. Tujuannya adalah memisahkan logika bisnis dari tampilan (*separation of concerns*). Komponen `CekStatus.tsx` hanya bertindak memanggil hook tersebut, lalu mengoper nilai `barcodeData` sebagai *props* ke komponen anak `StatusCard.tsx` yang bersifat presentasional.
 
 ---
 

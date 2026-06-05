@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -14,9 +13,9 @@ function CekStatusInner() {
     setTicketInput,
     searchState,
     result,
-    qrCodeData,
+    barcodeData,
     handleSearch,
-    generateQRCode
+    generateBarcode
   } = useStatusSearch(searchParams.get('tiket')?.toUpperCase() || '')
 
   // Auto-search jika ada ?tiket= di URL
@@ -29,9 +28,9 @@ function CekStatusInner() {
 
   useEffect(() => {
     if (result && result.status === 'Disetujui' && result.ticketNumber) {
-      generateQRCode(result.ticketNumber)
+      generateBarcode(result.ticketNumber)
     }
-  }, [result, generateQRCode])
+  }, [result, generateBarcode])
 
   const getImageUrl = (path: string) => {
     if (!path) return null;
@@ -151,7 +150,7 @@ function CekStatusInner() {
         {searchState === 'found' && result && (
           <StatusCard 
             result={result} 
-            qrCodeData={qrCodeData} 
+            barcodeData={barcodeData} 
             formatDate={formatDate} 
           />
         )}
