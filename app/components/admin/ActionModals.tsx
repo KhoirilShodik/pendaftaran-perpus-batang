@@ -13,7 +13,7 @@ interface ActionModalsProps {
   onClose: () => void
   onApprove: (reg: Registration) => void
   onReject: () => void
-  qrCodeData: string
+  barcodeData: string
   getImageUrl: (path: string) => string | null
   showRejectForm: boolean
   setShowRejectForm: (show: boolean) => void
@@ -26,7 +26,7 @@ export function ActionModals({
   onClose,
   onApprove,
   onReject,
-  qrCodeData,
+  barcodeData,
   getImageUrl,
   showRejectForm,
   setShowRejectForm,
@@ -293,7 +293,7 @@ export function ActionModals({
           {selectedReg.status === 'Disetujui' && (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <div className="flex-1">
-                {qrCodeData ? (
+                {barcodeData ? (
                   (() => {
                     const originalFotoUrl = selectedReg.pasFotoUrl
                       ? (selectedReg.pasFotoUrl.startsWith('http') ? selectedReg.pasFotoUrl : resolveImageUrl(selectedReg.pasFotoUrl))
@@ -325,7 +325,7 @@ export function ActionModals({
                                 })()
                                 : '-',
                             }}
-                            barcodeUrl={qrCodeData}
+                            barcodeUrl={barcodeData}
                             pasFotoUrl={proxiedFotoUrl}
                             baseUrl={typeof window !== 'undefined' ? window.location.origin : ''}
                           />

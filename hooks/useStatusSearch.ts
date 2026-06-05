@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
-import QRCode from 'qrcode'
+import bwipjs from 'bwip-js'
 import { Registration, RegistrationStatus } from '@/types'
-import { STATUS_CONFIG } from '@/lib/constants'
 
 export type SearchState = 'idle' | 'loading' | 'not_found' | 'found'
 
@@ -9,24 +8,30 @@ export function useStatusSearch(initialTicket: string = '') {
   const [ticketInput, setTicketInput] = useState(initialTicket)
   const [searchState, setSearchState] = useState<SearchState>('idle')
   const [result, setResult] = useState<Partial<Registration> | null>(null)
-  const [qrCodeData, setQrCodeData] = useState('')
+  const [barcodeData, setBarcodeData] = useState('')
 
-  const generateQRCode = useCallback(async (ticketNumber: string) => {
+  const generateBarcode = useCallback(async (ticketNumber: string) => {
     try {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || STATUS_CONFIG.SITE_URL_FALLBACK)
-      const url = `${baseUrl}/cek-status?tiket=${ticketNumber}`
-      const qrData = await QRCode.toDataURL(url, {
-        margin: 1,
-        width: 150,
-        errorCorrectionLevel: 'H',
-        color: {
-          dark: '#1e3a5f',
-          light: '#ffffff',
+      // Menggunakan bwip-js untuk generate Barcode 128
+      bwipjs.toDataURL({
+        bcid: 'code128',      // Tipe barcode
+        text: ticketNumber,   // Data yang di-encode
+        scale: 3,             // Ukuran skala
+        height: 10,           // Tinggi barcode (mm)
+        includetext: true,    // Tampilkan teks di bawah barcode
+        textxalign: 'center',
+      }, (err, png) => {
+        if (err) {
+          console.error('Barcode Error:', err)
+        } else {
+          // PERBAIKAN: 
+          // 1. Mengakses properti .uri dari objek hasil bwipjs terbaru
+          // 2. Menggunakan 'png' sebagai sumber data, bukan state 'barcodeData'
+          setBarcodeData((png as any).uri || png) 
         }
       })
-      setQrCodeData(qrData)
     } catch (err) {
-      console.error('QR Error:', err)
+      console.error('Barcode Generation Error:', err)
     }
   }, [])
 
@@ -45,7 +50,7 @@ export function useStatusSearch(initialTicket: string = '') {
         setResult(null)
       } else {
         const r = json.data
-        setResult({
+        const mappedData: Partial<Registration> = {
           ticketNumber: r.ticket_no,
           fullname: r.fullname,
           status: r.status as RegistrationStatus,
@@ -56,23 +61,30 @@ export function useStatusSearch(initialTicket: string = '') {
           memberNo: r.member_no || r.ticket_no,
           endDate: r.end_date,
           jobId: r.job_id
-        })
+        }
+        
+        setResult(mappedData)
         setSearchState('found')
+        
+        // Panggil generateBarcode agar barcode langsung muncul saat data ditemukan
+        if (mappedData.ticketNumber) {
+          generateBarcode(mappedData.ticketNumber)
+        }
       }
     } catch (err) {
       console.error('Search error:', err)
       setSearchState('not_found')
       setResult(null)
     }
-  }, [ticketInput])
+  }, [ticketInput, generateBarcode])
 
   return {
     ticketInput,
     setTicketInput,
     searchState,
     result,
-    qrCodeData,
+    barcodeData,
     handleSearch,
-    generateQRCode
+    generateBarcode
   }
 }

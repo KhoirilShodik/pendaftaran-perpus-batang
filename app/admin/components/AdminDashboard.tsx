@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import QRCode from 'qrcode'
+import bwipjs from 'bwip-js'
 import { 
   RefreshCw, LogOut, ShieldAlert, KeyRound, 
   Loader2, Save, X, BookOpen, Eye, EyeOff, Settings, LayoutDashboard, Users
@@ -48,8 +48,7 @@ export default function AdminDashboard() {
   const [activeFilter, setActiveFilter] = useState<'Semua'|RegistrationStatus>('Semua')
   const [searchQuery, setSearchQuery] = useState('')
   const [toast, setToast] = useState('')
-  const [qrCodeData, setQrCodeData] = useState<string>('')
-
+const [barcodeData, setBarcodeData] = useState<string>('')
   // Check Session on Mount
   useEffect(() => {
     const checkSession = async () => {
@@ -80,15 +79,27 @@ export default function AdminDashboard() {
   }, [isLoggedIn, fetchRegistrations])
 
   useEffect(() => {
-    if (selectedReg && selectedReg.status === 'Disetujui') {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const verifyUrl = `${baseUrl}/cek-status?tiket=${selectedReg.ticketNumber}`;
-      
-      QRCode.toDataURL(verifyUrl, { width: 300, margin: 2 })
-        .then(url => setQrCodeData(url))
-        .catch(err => console.error("QR Error:", err));
-    }
-  }, [selectedReg]);
+  if (selectedReg && selectedReg.status === 'Disetujui') {
+    // Reset barcode saat pendaftar baru dipilih agar tidak menampilkan data lama
+    setBarcodeData(''); 
+
+    bwipjs.toDataURL({
+      bcid: 'code128',
+      text: selectedReg.ticketNumber, 
+      scale: 3,
+      height: 10,
+      includetext: true,
+      textxalign: 'center',
+    }, (err, png) => {
+      if (err) {
+        console.error("Barcode Error:", err);
+      } else {
+        // PERBAIKAN: Gunakan 'png' (hasil dari callback), bukan state itu sendiri
+        setBarcodeData((png as any ) .uri); 
+      }
+    });
+  }
+}, [selectedReg]);
 
   const handleLogin = async () => {
     if (!loginEmail || !loginPass) {
@@ -371,14 +382,14 @@ export default function AdminDashboard() {
                 setSelectedReg(null)
                 setShowRejectForm(false)
               }}
-              onApprove={onApprove}
-              onReject={onReject}
-              qrCodeData={qrCodeData}
-              getImageUrl={getImageUrl}
-              showRejectForm={showRejectForm}
-              setShowRejectForm={setShowRejectForm}
-              rejectReason={rejectReason}
-              setRejectReason={setRejectReason}
+                onApprove={onApprove}
+                onReject={onReject}
+                barcodeData={barcodeData}
+                getImageUrl={getImageUrl}
+                showRejectForm={showRejectForm}
+                setShowRejectForm={setShowRejectForm}
+                rejectReason={rejectReason}
+                setRejectReason={setRejectReason}
             />
           </>
         )}
