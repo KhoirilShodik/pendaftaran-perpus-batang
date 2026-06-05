@@ -12,24 +12,25 @@ export function useStatusSearch(initialTicket: string = '') {
 
   const generateBarcode = useCallback(async (ticketNumber: string) => {
     try {
-      // Menggunakan bwip-js untuk generate Barcode 128
-      bwipjs.toDataURL({
-        bcid: 'code128',      // Tipe barcode
+      // Guard: pastikan kode hanya berjalan di browser (bukan SSR)
+      if (typeof document === 'undefined') return
+
+      // Buat elemen canvas offscreen untuk bwip-js v4.x
+      const canvas = document.createElement('canvas')
+
+      // Menggunakan bwip-js toCanvas() (API yang tersedia di browser pada v4.x)
+      bwipjs.toCanvas(canvas, {
+        bcid: 'code128',      // Tipe barcode Code 128
         text: ticketNumber,   // Data yang di-encode
         scale: 3,             // Ukuran skala
         height: 10,           // Tinggi barcode (mm)
         includetext: true,    // Tampilkan teks di bawah barcode
         textxalign: 'center',
-      }, (err, png) => {
-        if (err) {
-          console.error('Barcode Error:', err)
-        } else {
-          // PERBAIKAN: 
-          // 1. Mengakses properti .uri dari objek hasil bwipjs terbaru
-          // 2. Menggunakan 'png' sebagai sumber data, bukan state 'barcodeData'
-          setBarcodeData((png as any).uri || png) 
-        }
       })
+
+      // Konversi canvas ke Data URL menggunakan native browser API
+      const dataUrl = canvas.toDataURL('image/png')
+      setBarcodeData(dataUrl)
     } catch (err) {
       console.error('Barcode Generation Error:', err)
     }

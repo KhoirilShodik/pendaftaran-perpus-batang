@@ -83,21 +83,29 @@ const [barcodeData, setBarcodeData] = useState<string>('')
     // Reset barcode saat pendaftar baru dipilih agar tidak menampilkan data lama
     setBarcodeData(''); 
 
-    bwipjs.toDataURL({
-      bcid: 'code128',
-      text: selectedReg.ticketNumber, 
-      scale: 3,
-      height: 10,
-      includetext: true,
-      textxalign: 'center',
-    }, (err, png) => {
-      if (err) {
-        console.error("Barcode Error:", err);
-      } else {
-        // PERBAIKAN: Gunakan 'png' (hasil dari callback), bukan state itu sendiri
-        setBarcodeData((png as any ) .uri); 
-      }
-    });
+    // Guard: pastikan kode hanya berjalan di browser (bukan SSR)
+    if (typeof document === 'undefined') return
+
+    try {
+      // Buat elemen canvas offscreen untuk bwip-js v4.x
+      const canvas = document.createElement('canvas')
+
+      // Menggunakan bwip-js toCanvas() (API yang tersedia di browser pada v4.x)
+      bwipjs.toCanvas(canvas, {
+        bcid: 'code128',
+        text: selectedReg.ticketNumber, 
+        scale: 3,
+        height: 10,
+        includetext: true,
+        textxalign: 'center',
+      })
+
+      // Konversi canvas ke Data URL menggunakan native browser API
+      const dataUrl = canvas.toDataURL('image/png')
+      setBarcodeData(dataUrl)
+    } catch (err) {
+      console.error("Barcode Error:", err)
+    }
   }
 }, [selectedReg]);
 
