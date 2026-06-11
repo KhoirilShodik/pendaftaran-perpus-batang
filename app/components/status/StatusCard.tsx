@@ -53,6 +53,19 @@ export function StatusCard({ result, barcodeData, formatDate }: StatusCardProps)
               <p>Pendaftaran Anda sedang diverifikasi oleh petugas. Mohon tunggu 1–3 hari kerja.</p>
             </div>
 
+            {/* Kotak Pengingat Email Spam */}
+            <div className="flex gap-4 p-5 bg-blue-50 border border-blue-100 rounded-2xl text-sm text-blue-800 font-medium animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="p-2 bg-blue-100 text-blue-600 rounded-lg h-fit shrink-0">
+                <Mail size={18} />
+              </div>
+              <div>
+                <p className="text-blue-900 font-extrabold text-xs uppercase tracking-widest mb-1">Informasi Email</p>
+                <p className="text-blue-700/80 text-[11px] font-medium leading-relaxed italic text-left">
+                  Status pendaftaran akan dikirim ke email Anda{result.email ? ` (${result.email})` : ''}. Jika email tidak ditemukan di Kotak Masuk, silakan cek folder <strong>Spam</strong> dan klik <strong>"Laporkan Bukan Spam"</strong> agar selalu mendapatkan pembaruan.
+                </p>
+              </div>
+            </div>
+
             <div className="pt-4">
               <ProgressSteps steps={[
                 { label: 'Diterima', state: 'done' },

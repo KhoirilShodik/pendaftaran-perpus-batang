@@ -1,5 +1,5 @@
 import React from 'react'
-import { CheckCircle2, Copy, ShieldAlert, Search, PlusCircle, BookOpen } from 'lucide-react'
+import { CheckCircle2, Copy, ShieldAlert, Search, PlusCircle, BookOpen, Mail } from 'lucide-react'
 
 interface SuccessStateProps {
   ticketNumber: string
@@ -50,6 +50,19 @@ export function SuccessState({ ticketNumber, email }: SuccessStateProps) {
               <p className="text-rose-900 font-black text-xs uppercase tracking-widest mb-1">Simpan Nomor Tiket!</p>
               <p className="text-rose-700/70 text-[11px] font-medium leading-relaxed italic">
                 Nomor tiket diperlukan untuk mengecek status pendaftaran dan mengambil kartu fisik di perpustakaan.
+              </p>
+            </div>
+          </div>
+
+          {/* Kotak Pengingat Email Spam */}
+          <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-5 mb-8 text-left flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-xl shrink-0 h-fit">
+              <Mail size={20} />
+            </div>
+            <div>
+              <p className="text-blue-900 font-black text-xs uppercase tracking-widest mb-1">Pemberitahuan Email</p>
+              <p className="text-blue-700/70 text-[11px] font-medium leading-relaxed italic">
+                Status pendaftaran juga akan dikirimkan ke email Anda (<strong>{email}</strong>). Jika tidak masuk di Kotak Masuk (Inbox), mohon periksa folder <strong>Spam</strong>. Untuk membantu kelancaran pengiriman, silakan buka email tersebut lalu klik <strong>"Laporkan Bukan Spam"</strong>.
               </p>
             </div>
           </div>

@@ -54,6 +54,7 @@ export function useStatusSearch(initialTicket: string = '') {
         const mappedData: Partial<Registration> = {
           ticketNumber: r.ticket_no,
           fullname: r.fullname,
+          email: r.email,
           status: r.status as RegistrationStatus,
           createdAt: r.created_at,
           approvedAt: r.approved_at,
