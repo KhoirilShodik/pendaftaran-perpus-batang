@@ -3,7 +3,7 @@
 > **Sistem**: Portal Pendaftaran Anggota Perpustakaan Online  
 > **Instansi**: Dinas Perpustakaan dan Kearsipan (Dispuspa) Kabupaten Batang  
 > **Versi**: 0.1.0  
-> **Terakhir diperbarui**: 30 Mei 2026
+> **Terakhir diperbarui**: 7 Juni 2026
 
 ---
 
@@ -19,6 +19,7 @@
 4. **Mengunduh kartu anggota digital** dalam format PDF setelah disetujui
 
 Sisi admin menyediakan:
+
 1. **Dashboard verifikasi** untuk petugas perpustakaan
 2. **Approve/Reject** pendaftaran dengan notifikasi email otomatis
 3. **Sinkronisasi data** ke sistem INLIS Lite (perpustakaan lokal) via PHP Bridge
@@ -26,21 +27,21 @@ Sisi admin menyediakan:
 
 ### 1.2 Tech Stack
 
-| Layer | Teknologi | Versi |
-|-------|-----------|-------|
-| **Framework** | Next.js (App Router) | 16.2.4 |
-| **Bahasa** | TypeScript | ^5 |
-| **Runtime** | React | 19.2.4 |
-| **Styling** | TailwindCSS | ^4 |
-| **Database** | MySQL (Hostinger) | via `mysql2` ^3.22 |
-| **Auth** | JWT (`jose` ^6.2) + `bcryptjs` ^3.0 |  |
-| **Email** | Resend API | ^6.12 |
-| **PDF** | `@react-pdf/renderer` | ^4.5 |
-| **Barcode** | `bwip-js` | ^4.10 |
-| **QR Code** | `qrcode` | ^1.5 |
-| **Icon** | `lucide-react` | ^1.14 |
-| **Font** | Geist (Google Fonts) |  |
-| **Hosting** | Vercel (frontend) + Hostinger (DB & file upload) |  |
+| Layer         | Teknologi                                                            | Versi              |
+| ------------- | -------------------------------------------------------------------- | ------------------ |
+| **Framework** | Next.js (App Router)                                                 | 16.2.4             |
+| **Bahasa**    | TypeScript                                                           | ^5                 |
+| **Runtime**   | React                                                                | 19.2.4             |
+| **Styling**   | TailwindCSS                                                          | ^4                 |
+| **Database**  | MySQL (Hostinger)                                                    | via `mysql2` ^3.22 |
+| **Auth**      | JWT (`jose` ^6.2) + `bcryptjs` ^3.0                                  |                    |
+| **Email**     | Resend API                                                           | ^6.12              |
+| **PDF**       | `@react-pdf/renderer`                                                | ^4.5               |
+| **Barcode**   | `bwip-js` — Canvas API (`toCanvas`) di browser, `toBuffer` di server | ^4.10              |
+| **QR Code**   | `qrcode`                                                             | ^1.5               |
+| **Icon**      | `lucide-react`                                                       | ^1.14              |
+| **Font**      | Geist (Google Fonts)                                                 |                    |
+| **Hosting**   | Vercel (frontend) + Hostinger (DB & file upload)                     |                    |
 
 ### 1.3 Paradigma Arsitektur
 
@@ -64,15 +65,15 @@ Sisi admin menyediakan:
 
 ### 1.4 Skala & Kompleksitas
 
-| Metrik | Nilai |
-|--------|-------|
-| Jumlah file sumber | ~40 file `.ts`/`.tsx` |
-| Halaman publik | 2 (`/`, `/cek-status`) |
-| Halaman admin | 1 (`/admin`) dengan 3 tab |
-| API endpoints | 12 route handlers |
-| Tabel database | 2 (`registrations`, `admin_users`) |
+| Metrik              | Nilai                                          |
+| ------------------- | ---------------------------------------------- |
+| Jumlah file sumber  | ~40 file `.ts`/`.tsx`                          |
+| Halaman publik      | 2 (`/`, `/cek-status`)                         |
+| Halaman admin       | 1 (`/admin`) dengan 3 tab                      |
+| API endpoints       | 12 route handlers                              |
+| Tabel database      | 2 (`registrations`, `admin_users`)             |
 | Integrasi eksternal | 3 (Resend, PHP Bridge/INLIS, Hostinger Upload) |
-| Kompleksitas | **Medium** — CRUD + integrasi + PDF generation |
+| Kompleksitas        | **Medium** — CRUD + integrasi + PDF generation |
 
 ---
 
@@ -169,17 +170,17 @@ pendaftaran-perpus-batang/
 
 ### 2.2 Kategori File
 
-| Kategori | File |
-|----------|------|
-| **Entry Points** | [layout.tsx](file:///d:/project/pendaftaran-perpus-batang/app/layout.tsx), [page.tsx](file:///d:/project/pendaftaran-perpus-batang/app/page.tsx), [middleware.ts](file:///d:/project/pendaftaran-perpus-batang/middleware.ts) |
-| **API Controllers** | Semua `route.ts` di `app/api/` (12 file) |
-| **Models/Types** | [types/index.ts](file:///d:/project/pendaftaran-perpus-batang/types/index.ts) |
-| **Services/Hooks** | [useRegistrationForm.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts), [useRegistrations.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrations.ts), [useStatusSearch.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useStatusSearch.ts) |
-| **Config** | [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts), [lib/constants.ts](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts), [.env.local](file:///d:/project/pendaftaran-perpus-batang/.env.local) |
-| **Utilities** | [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts) |
-| **UI Components** | Semua `.tsx` di `app/components/` |
-| **Migration Scripts** | [alter_table.mjs](file:///d:/project/pendaftaran-perpus-batang/alter_table.mjs), [reset_password.mjs](file:///d:/project/pendaftaran-perpus-batang/reset_password.mjs) |
-| **Dapat diabaikan** | `node_modules/`, `tsconfig.tsbuildinfo`, `.next/`, `next-env.d.ts` |
+| Kategori              | File                                                                                                                                                                                                                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Entry Points**      | [layout.tsx](file:///d:/project/pendaftaran-perpus-batang/app/layout.tsx), [page.tsx](file:///d:/project/pendaftaran-perpus-batang/app/page.tsx), [middleware.ts](file:///d:/project/pendaftaran-perpus-batang/middleware.ts)                                                                   |
+| **API Controllers**   | Semua `route.ts` di `app/api/` (12 file)                                                                                                                                                                                                                                                        |
+| **Models/Types**      | [types/index.ts](file:///d:/project/pendaftaran-perpus-batang/types/index.ts)                                                                                                                                                                                                                   |
+| **Services/Hooks**    | [useRegistrationForm.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts), [useRegistrations.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrations.ts), [useStatusSearch.ts](file:///d:/project/pendaftaran-perpus-batang/hooks/useStatusSearch.ts) |
+| **Config**            | [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts), [lib/constants.ts](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts), [.env.local](file:///d:/project/pendaftaran-perpus-batang/.env.local)                                                                   |
+| **Utilities**         | [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts)                                                                                                                                                                                                     |
+| **UI Components**     | Semua `.tsx` di `app/components/`                                                                                                                                                                                                                                                               |
+| **Migration Scripts** | [alter_table.mjs](file:///d:/project/pendaftaran-perpus-batang/alter_table.mjs), [reset_password.mjs](file:///d:/project/pendaftaran-perpus-batang/reset_password.mjs)                                                                                                                          |
+| **Dapat diabaikan**   | `node_modules/`, `tsconfig.tsbuildinfo`, `.next/`, `next-env.d.ts`                                                                                                                                                                                                                              |
 
 ### 2.3 File Kritis (Wajib Dipahami Dulu)
 
@@ -483,24 +484,24 @@ graph TD
 
 ### 4.3 Coupling Analysis
 
-| Modul | Coupling Level | Penjelasan |
-|-------|---------------|------------|
-| `lib/db.ts` | **Highly Coupled** | Diimpor oleh semua API route yang akses DB (8 file) |
-| `types/index.ts` | **Highly Coupled** | Diimpor oleh semua hooks & banyak komponen |
-| `lib/constants.ts` | **Medium Coupled** | Diimpor oleh hooks, API notify, API download-card |
-| `LibraryCardPDF.tsx` | **Medium Coupled** | Diimpor oleh ActionModals, StatusCard, dan download-card API |
-| `Navbar.tsx` | **Loosely Coupled** | Hanya diimpor oleh layout.tsx |
-| `StatusBadge.tsx` | **Loosely Coupled** | Hanya diimpor oleh RegistrationTable.tsx |
-| `Toast.tsx` | **Loosely Coupled** | Hanya diimpor oleh AdminDashboard.tsx |
+| Modul                | Coupling Level      | Penjelasan                                                   |
+| -------------------- | ------------------- | ------------------------------------------------------------ |
+| `lib/db.ts`          | **Highly Coupled**  | Diimpor oleh semua API route yang akses DB (8 file)          |
+| `types/index.ts`     | **Highly Coupled**  | Diimpor oleh semua hooks & banyak komponen                   |
+| `lib/constants.ts`   | **Medium Coupled**  | Diimpor oleh hooks, API notify, API download-card            |
+| `LibraryCardPDF.tsx` | **Medium Coupled**  | Diimpor oleh ActionModals, StatusCard, dan download-card API |
+| `Navbar.tsx`         | **Loosely Coupled** | Hanya diimpor oleh layout.tsx                                |
+| `StatusBadge.tsx`    | **Loosely Coupled** | Hanya diimpor oleh RegistrationTable.tsx                     |
+| `Toast.tsx`          | **Loosely Coupled** | Hanya diimpor oleh AdminDashboard.tsx                        |
 
 ### 4.4 Shared Utilities
 
-| Utility | Dipakai Oleh | Fungsi |
-|---------|-------------|--------|
-| [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts) | 8 API routes | MySQL connection pool |
-| [lib/constants.ts](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts) | hooks, API routes | Regex validasi, default values, prefix tiket |
-| [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts) | `/api/notify` | 3 template email HTML (welcome, approved, rejected) |
-| [types/index.ts](file:///d:/project/pendaftaran-perpus-batang/types/index.ts) | Seluruh codebase | Interface Registration, FormData, FormErrors |
+| Utility                                                                                     | Dipakai Oleh      | Fungsi                                              |
+| ------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------- |
+| [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts)                         | 8 API routes      | MySQL connection pool                               |
+| [lib/constants.ts](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts)           | hooks, API routes | Regex validasi, default values, prefix tiket        |
+| [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts) | `/api/notify`     | 3 template email HTML (welcome, approved, rejected) |
+| [types/index.ts](file:///d:/project/pendaftaran-perpus-batang/types/index.ts)               | Seluruh codebase  | Interface Registration, FormData, FormErrors        |
 
 ---
 
@@ -508,70 +509,75 @@ graph TD
 
 ### 5.1 Daftar Komponen Utama
 
-| Komponen | Path | Tanggung Jawab |
-|----------|------|---------------|
-| **RegistrationForm** | [app/components/RegistrationForm.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/RegistrationForm.tsx) | Orchestrator form pendaftaran (menggabungkan 6 section + file upload) |
-| **AdminDashboard** | [app/admin/components/AdminDashboard.tsx](file:///d:/project/pendaftaran-perpus-batang/app/admin/components/AdminDashboard.tsx) | State manager dashboard admin (auth, filter, CRUD, tab switching) |
-| **CekStatus** | [app/cek-status/components/CekStatus.tsx](file:///d:/project/pendaftaran-perpus-batang/app/cek-status/components/CekStatus.tsx) | Pencarian status pendaftaran dengan auto-search dari URL query |
-| **ActionModals** | [app/components/admin/ActionModals.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/admin/ActionModals.tsx) | Modal detail pendaftaran + approve/reject + download kartu PDF |
-| **LibraryCardPDF** | [app/components/LibraryCardPDF.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/LibraryCardPDF.tsx) | Template PDF kartu anggota perpustakaan (react-pdf) |
-| **StatusCard** | [app/components/status/StatusCard.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/status/StatusCard.tsx) | 3 varian tampilan status (Menunggu/Disetujui/Ditolak) |
-| **UserManagement** | [app/admin/components/UserManagement.tsx](file:///d:/project/pendaftaran-perpus-batang/app/admin/components/UserManagement.tsx) | CRUD akun admin/petugas (khusus superadmin) |
+| Komponen             | Path                                                                                                                            | Tanggung Jawab                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **RegistrationForm** | [app/components/RegistrationForm.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/RegistrationForm.tsx)         | Orchestrator form pendaftaran (menggabungkan 6 section + file upload) |
+| **AdminDashboard**   | [app/admin/components/AdminDashboard.tsx](file:///d:/project/pendaftaran-perpus-batang/app/admin/components/AdminDashboard.tsx) | State manager dashboard admin (auth, filter, CRUD, tab switching)     |
+| **CekStatus**        | [app/cek-status/components/CekStatus.tsx](file:///d:/project/pendaftaran-perpus-batang/app/cek-status/components/CekStatus.tsx) | Pencarian status pendaftaran dengan auto-search dari URL query        |
+| **ActionModals**     | [app/components/admin/ActionModals.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/admin/ActionModals.tsx)     | Modal detail pendaftaran + approve/reject + download kartu PDF        |
+| **LibraryCardPDF**   | [app/components/LibraryCardPDF.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/LibraryCardPDF.tsx)             | Template PDF kartu anggota perpustakaan (react-pdf)                   |
+| **StatusCard**       | [app/components/status/StatusCard.tsx](file:///d:/project/pendaftaran-perpus-batang/app/components/status/StatusCard.tsx)       | 3 varian tampilan status (Menunggu/Disetujui/Ditolak)                 |
+| **UserManagement**   | [app/admin/components/UserManagement.tsx](file:///d:/project/pendaftaran-perpus-batang/app/admin/components/UserManagement.tsx) | CRUD akun admin/petugas (khusus superadmin)                           |
 
 ### 5.2 Interface/Contract Penting
 
 ```typescript
 // types/index.ts — Kontrak data utama
 
-type RegistrationStatus = 'Menunggu' | 'Disetujui' | 'Ditolak'
+type RegistrationStatus = "Menunggu" | "Disetujui" | "Ditolak";
 
 interface Registration {
-  id: number
-  ticketNumber: string      // REG-2026-XXXXX
-  fullname: string
-  identityNo: string        // NIK 16 digit
-  status: RegistrationStatus
-  memberNo?: string         // Dari PHP Bridge/INLIS
-  endDate?: string          // Masa berlaku kartu
+  id: number;
+  ticketNumber: string; // REG-2026-XXXXX
+  fullname: string;
+  identityNo: string; // NIK 16 digit
+  status: RegistrationStatus;
+  memberNo?: string; // Dari PHP Bridge/INLIS
+  endDate?: string; // Masa berlaku kartu
   // ... 25+ field lainnya (lihat types/index.ts)
 }
 
 interface FormData {
-  fullname: string
+  fullname: string;
   // ... 22 field form input
 }
 
 interface FormErrors {
-  [key: string]: string     // key = nama field, value = pesan error
+  [key: string]: string; // key = nama field, value = pesan error
 }
 ```
 
 ### 5.3 Design Patterns
 
-| Pattern | Implementasi | Lokasi |
-|---------|-------------|--------|
-| **Custom Hook Pattern** | Logika bisnis dienkapsulasi dalam React hooks | `hooks/` (3 hooks) |
-| **Container/Presenter** | `RegistrationForm` (container) + `FormSections` (presenter) | `app/components/` |
-| **Singleton** | MySQL connection pool | [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts) |
-| **Factory** | `getEmailTemplate()` menghasilkan email berdasarkan type | [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts) |
-| **Proxy** | Image proxy bypass CORS | [app/api/proxy-image/route.ts](file:///d:/project/pendaftaran-perpus-batang/app/api/proxy-image/route.ts) |
-| **Middleware** | JWT verification interceptor | [middleware.ts](file:///d:/project/pendaftaran-perpus-batang/middleware.ts) |
-| **Guard** | `konfigurasiSuperAdmin()` helper function | [app/api/admin/users/route.ts](file:///d:/project/pendaftaran-perpus-batang/app/api/admin/users/route.ts) |
-| **Fire-and-Forget** | Email notifikasi setelah pendaftaran (non-blocking) | [useRegistrationForm.ts:278-287](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts#L278-L287) |
+| Pattern                 | Implementasi                                                | Lokasi                                                                                                                |
+| ----------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Custom Hook Pattern** | Logika bisnis dienkapsulasi dalam React hooks               | `hooks/` (3 hooks)                                                                                                    |
+| **Container/Presenter** | `RegistrationForm` (container) + `FormSections` (presenter) | `app/components/`                                                                                                     |
+| **Singleton**           | MySQL connection pool                                       | [lib/db.ts](file:///d:/project/pendaftaran-perpus-batang/lib/db.ts)                                                   |
+| **Factory**             | `getEmailTemplate()` menghasilkan email berdasarkan type    | [lib/emailTemplates.ts](file:///d:/project/pendaftaran-perpus-batang/lib/emailTemplates.ts)                           |
+| **Proxy**               | Image proxy bypass CORS                                     | [app/api/proxy-image/route.ts](file:///d:/project/pendaftaran-perpus-batang/app/api/proxy-image/route.ts)             |
+| **Middleware**          | JWT verification interceptor                                | [middleware.ts](file:///d:/project/pendaftaran-perpus-batang/middleware.ts)                                           |
+| **Guard**               | `konfigurasiSuperAdmin()` helper function                   | [app/api/admin/users/route.ts](file:///d:/project/pendaftaran-perpus-batang/app/api/admin/users/route.ts)             |
+| **Fire-and-Forget**     | Email notifikasi setelah pendaftaran (non-blocking)         | [useRegistrationForm.ts:278-287](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts#L278-L287) |
 
 ### 5.4 State Management
 
 Sistem menggunakan **React State** murni (tanpa Redux/Zustand):
 
-| State Container | Scope | States |
-|----------------|-------|--------|
-| `useRegistrationForm` | Form pendaftaran | formData, errors, isSubmitting, isSuccess, ticketNumber, pasFoto/fotoKtp |
-| `useRegistrations` | Dashboard admin | registrations[], isLoadingData, selectedReg, showRejectForm, rejectReason |
-| `useStatusSearch` | Halaman cek status | ticketInput, searchState, result, barcodeData |
-| `AdminDashboard` | Auth + UI admin | isLoggedIn, isLoadingAuth, userRole, activeTab, activeFilter, searchQuery, toast |
+| State Container       | Scope              | States                                                                           |
+| --------------------- | ------------------ | -------------------------------------------------------------------------------- |
+| `useRegistrationForm` | Form pendaftaran   | formData, errors, isSubmitting, isSuccess, ticketNumber, pasFoto/fotoKtp         |
+| `useRegistrations`    | Dashboard admin    | registrations[], isLoadingData, selectedReg, showRejectForm, rejectReason        |
+| `useStatusSearch`     | Halaman cek status | ticketInput, searchState, result, barcodeData                                    |
+| `AdminDashboard`      | Auth + UI admin    | isLoggedIn, isLoadingAuth, userRole, activeTab, activeFilter, searchQuery, toast |
 
-**Catatan Alur Data Cek Status:**
-Pengolahan data pencarian status dan generasi `barcodeData` (via `bwip-js`) sengaja diekstraksi ke dalam *custom hook* `useStatusSearch`. Tujuannya adalah memisahkan logika bisnis dari tampilan (*separation of concerns*). Komponen `CekStatus.tsx` hanya bertindak memanggil hook tersebut, lalu mengoper nilai `barcodeData` sebagai *props* ke komponen anak `StatusCard.tsx` yang bersifat presentasional.
+**Catatan Alur Data Cek Status & Barcode:**
+Pengolahan data pencarian status dan generasi `barcodeData` sengaja diekstraksi ke dalam _custom hook_ `useStatusSearch`. Tujuannya adalah memisahkan logika bisnis dari tampilan (_separation of concerns_). Komponen `CekStatus.tsx` hanya bertindak memanggil hook tersebut, lalu mengoper nilai `barcodeData` sebagai _props_ ke komponen anak `StatusCard.tsx` yang bersifat presentasional.
+
+**Mekanisme barcode saat ini** (bwip-js v4.x):
+
+- **Sisi browser** (`useStatusSearch.ts`, `AdminDashboard.tsx`): Menggunakan `bwipjs.toCanvas(canvas, options)` untuk merender barcode ke elemen `<canvas>` yang dibuat secara _offscreen_ (`document.createElement('canvas')`), kemudian mengkonversi hasilnya menjadi Data URL via `canvas.toDataURL('image/png')`. Pendekatan ini dipilih karena API `toDataURL()` milik bwip-js tidak lagi tersedia di versi 4.x — fungsi tersebut hanya ada di versi 3.x ke bawah.
+- **Sisi server** (`download-card/route.ts`): Menggunakan `bwipjs.toBuffer(options, callback)` yang mengembalikan buffer PNG secara langsung, tanpa memerlukan DOM/Canvas. Buffer kemudian dikonversi ke base64 Data URL untuk disisipkan ke dalam template PDF (`LibraryCardPDF.tsx`).
 
 ---
 
@@ -617,51 +623,51 @@ Pengolahan data pencarian status dan generasi `barcodeData` (via `bwip-js`) seng
 
 #### Tabel `registrations`
 
-| Kolom | Tipe | Deskripsi |
-|-------|------|-----------|
-| `id` | INT (PK, AI) | Primary key |
-| `ticket_no` | VARCHAR | Nomor tiket unik (REG-2026-XXXXX) |
-| `member_no` | VARCHAR | Nomor anggota INLIS (dari PHP Bridge) |
-| `end_date` | DATE | Tanggal kadaluarsa kartu |
-| `fullname` | VARCHAR | Nama lengkap |
-| `identity_no` | VARCHAR | NIK/Nomor identitas |
-| `identity_type_id` | INT | Jenis identitas (1=KTP, 2=SIM, 3=Kartu Pelajar) |
-| `place_of_birth` | VARCHAR | Tempat lahir |
-| `date_of_birth` | DATE | Tanggal lahir |
-| `sex_id` | INT | Jenis kelamin (1=L, 2=P) |
-| `agama_id` | INT | Agama (1-6) |
-| `marital_status_id` | VARCHAR | Status perkawinan |
-| `mother_maiden_name` | VARCHAR | Nama ibu kandung |
-| `address` | TEXT | Alamat |
-| `kecamatan`, `kelurahan`, `rt`, `rw`, `city`, `province` | VARCHAR | Detail alamat |
-| `email` | VARCHAR | Email pendaftar |
-| `no_hp` | VARCHAR | No HP |
-| `phone` | VARCHAR | Telepon rumah (opsional) |
-| `education_level_id` | INT | Pendidikan (1-7) |
-| `job_id` | INT | Pekerjaan (1-8) |
-| `institution_name` | VARCHAR | Nama instansi/sekolah |
-| `nama_darurat`, `telp_darurat`, `status_hubungan_darurat` | VARCHAR | Kontak darurat |
-| `pas_foto_url` | VARCHAR | URL pas foto |
-| `foto_ktp_url` | VARCHAR | URL foto KTP |
-| `status` | ENUM | 'Menunggu' / 'Disetujui' / 'Ditolak' |
-| `reject_reason` | TEXT | Alasan penolakan |
-| `approved_by` | VARCHAR | Email admin yang approve/reject |
-| `approved_at` | DATETIME | Waktu disetujui |
-| `created_at` | DATETIME | Waktu pendaftaran |
-| `updated_at` | DATETIME | Waktu terakhir diperbarui |
+| Kolom                                                     | Tipe         | Deskripsi                                       |
+| --------------------------------------------------------- | ------------ | ----------------------------------------------- |
+| `id`                                                      | INT (PK, AI) | Primary key                                     |
+| `ticket_no`                                               | VARCHAR      | Nomor tiket unik (REG-2026-XXXXX)               |
+| `member_no`                                               | VARCHAR      | Nomor anggota INLIS (dari PHP Bridge)           |
+| `end_date`                                                | DATE         | Tanggal kadaluarsa kartu                        |
+| `fullname`                                                | VARCHAR      | Nama lengkap                                    |
+| `identity_no`                                             | VARCHAR      | NIK/Nomor identitas                             |
+| `identity_type_id`                                        | INT          | Jenis identitas (1=KTP, 2=SIM, 3=Kartu Pelajar) |
+| `place_of_birth`                                          | VARCHAR      | Tempat lahir                                    |
+| `date_of_birth`                                           | DATE         | Tanggal lahir                                   |
+| `sex_id`                                                  | INT          | Jenis kelamin (1=L, 2=P)                        |
+| `agama_id`                                                | INT          | Agama (1-6)                                     |
+| `marital_status_id`                                       | VARCHAR      | Status perkawinan                               |
+| `mother_maiden_name`                                      | VARCHAR      | Nama ibu kandung                                |
+| `address`                                                 | TEXT         | Alamat                                          |
+| `kecamatan`, `kelurahan`, `rt`, `rw`, `city`, `province`  | VARCHAR      | Detail alamat                                   |
+| `email`                                                   | VARCHAR      | Email pendaftar                                 |
+| `no_hp`                                                   | VARCHAR      | No HP                                           |
+| `phone`                                                   | VARCHAR      | Telepon rumah (opsional)                        |
+| `education_level_id`                                      | INT          | Pendidikan (1-7)                                |
+| `job_id`                                                  | INT          | Pekerjaan (1-8)                                 |
+| `institution_name`                                        | VARCHAR      | Nama instansi/sekolah                           |
+| `nama_darurat`, `telp_darurat`, `status_hubungan_darurat` | VARCHAR      | Kontak darurat                                  |
+| `pas_foto_url`                                            | VARCHAR      | URL pas foto                                    |
+| `foto_ktp_url`                                            | VARCHAR      | URL foto KTP                                    |
+| `status`                                                  | ENUM         | 'Menunggu' / 'Disetujui' / 'Ditolak'            |
+| `reject_reason`                                           | TEXT         | Alasan penolakan                                |
+| `approved_by`                                             | VARCHAR      | Email admin yang approve/reject                 |
+| `approved_at`                                             | DATETIME     | Waktu disetujui                                 |
+| `created_at`                                              | DATETIME     | Waktu pendaftaran                               |
+| `updated_at`                                              | DATETIME     | Waktu terakhir diperbarui                       |
 
 #### Tabel `admin_users`
 
-| Kolom | Tipe | Deskripsi |
-|-------|------|-----------|
-| `id` | INT (PK, AI) | Primary key |
-| `name` | VARCHAR | Nama lengkap admin |
-| `email` | VARCHAR (UNIQUE) | Email/username login |
-| `password` | VARCHAR | Hash bcrypt |
-| `role` | VARCHAR | 'superadmin' / 'petugas' |
-| `is_active` | TINYINT | 1=aktif, 0=nonaktif |
-| `last_login` | DATETIME | Login terakhir |
-| `created_at` | DATETIME | Waktu dibuat |
+| Kolom        | Tipe             | Deskripsi                |
+| ------------ | ---------------- | ------------------------ |
+| `id`         | INT (PK, AI)     | Primary key              |
+| `name`       | VARCHAR          | Nama lengkap admin       |
+| `email`      | VARCHAR (UNIQUE) | Email/username login     |
+| `password`   | VARCHAR          | Hash bcrypt              |
+| `role`       | VARCHAR          | 'superadmin' / 'petugas' |
+| `is_active`  | TINYINT          | 1=aktif, 0=nonaktif      |
+| `last_login` | DATETIME         | Login terakhir           |
+| `created_at` | DATETIME         | Waktu dibuat             |
 
 #### Relasi
 
@@ -674,21 +680,21 @@ registrations.approved_by ──(referensi)──▶ admin_users.email
 
 ### 6.3 Environment Variables
 
-| Variable | Wajib | Deskripsi |
-|----------|-------|-----------|
-| `DB_HOST` | ✅ | Host MySQL |
-| `DB_PORT` | ❌ | Port MySQL (default: 3306) |
-| `DB_NAME` | ✅ | Nama database |
-| `DB_USER` | ✅ | User database |
-| `DB_PASS` | ✅ | Password database |
-| `JWT_SECRET` | ✅ | Secret key untuk JWT signing |
-| `RESEND_API_KEY` | ✅ | API key Resend untuk email |
-| `NEXT_PUBLIC_SITE_URL` | ✅ | URL publik website |
-| `NEXT_PUBLIC_UPLOAD_URL` | ✅ | Base URL untuk akses file upload |
-| `BRIDGE_URL` | ✅ | URL PHP Bridge INLIS Lite |
-| `BRIDGE_API_KEY` | ✅ | API key untuk PHP Bridge |
-| `BRIDGE_SECRET` | ❌ | Secret tambahan bridge |
-| `UPLOAD_DIR` | ❌ | Path fisik folder upload Hostinger |
+| Variable                 | Wajib | Deskripsi                          |
+| ------------------------ | ----- | ---------------------------------- |
+| `DB_HOST`                | ✅    | Host MySQL                         |
+| `DB_PORT`                | ❌    | Port MySQL (default: 3306)         |
+| `DB_NAME`                | ✅    | Nama database                      |
+| `DB_USER`                | ✅    | User database                      |
+| `DB_PASS`                | ✅    | Password database                  |
+| `JWT_SECRET`             | ✅    | Secret key untuk JWT signing       |
+| `RESEND_API_KEY`         | ✅    | API key Resend untuk email         |
+| `NEXT_PUBLIC_SITE_URL`   | ✅    | URL publik website                 |
+| `NEXT_PUBLIC_UPLOAD_URL` | ✅    | Base URL untuk akses file upload   |
+| `BRIDGE_URL`             | ✅    | URL PHP Bridge INLIS Lite          |
+| `BRIDGE_API_KEY`         | ✅    | API key untuk PHP Bridge           |
+| `BRIDGE_SECRET`          | ❌    | Secret tambahan bridge             |
+| `UPLOAD_DIR`             | ❌    | Path fisik folder upload Hostinger |
 
 ### 6.4 Infrastruktur
 
@@ -749,11 +755,11 @@ npm start
 
 ### 7.2 Script Utilitas
 
-| Script | Cara Jalankan | Fungsi |
-|--------|--------------|--------|
-| `alter_table.mjs` | `node alter_table.mjs` | Tambah kolom `approved_by` & `reject_reason` ke tabel `registrations` |
-| `reset_password.mjs` | `node reset_password.mjs` | Reset password superadmin ke default atau buat akun baru |
-| `scratch_check_db.js` | `node scratch_check_db.js` | Debug koneksi dan data database |
+| Script                | Cara Jalankan              | Fungsi                                                                |
+| --------------------- | -------------------------- | --------------------------------------------------------------------- |
+| `alter_table.mjs`     | `node alter_table.mjs`     | Tambah kolom `approved_by` & `reject_reason` ke tabel `registrations` |
+| `reset_password.mjs`  | `node reset_password.mjs`  | Reset password superadmin ke default atau buat akun baru              |
+| `scratch_check_db.js` | `node scratch_check_db.js` | Debug koneksi dan data database                                       |
 
 ### 7.3 Hotspot Pengembangan
 
@@ -770,28 +776,29 @@ File-file yang paling sering memerlukan perubahan:
 > [!WARNING]
 > **Security Issues yang Teridentifikasi**
 
-| # | Issue | Severity | Lokasi |
-|---|-------|----------|--------|
-| 1 | **JWT Secret hardcoded** sebagai fallback di banyak file | 🔴 High | middleware.ts, login, me, change-password, profile, users, registrations |
-| 2 | **Credential database & API key terekspos** di .env.local yang mungkin ter-commit | 🔴 High | .env.local |
-| 3 | **Upload token hardcoded** di kode sumber | 🔴 High | [upload/route.ts:27](file:///d:/project/pendaftaran-perpus-batang/app/api/upload/route.ts#L27) |
-| 4 | **Admin default password** tertulis di constants.ts | 🟡 Medium | [constants.ts:3](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts#L3) |
-| 5 | **No rate limiting** pada endpoint publik | 🟡 Medium | Semua API routes |
-| 6 | **No CSRF protection** | 🟡 Medium | Semua POST endpoints |
-| 7 | **SQL injection risk rendah** — sudah menggunakan parameterized queries | 🟢 Low | Semua DB queries |
+| #   | Issue                                                                             | Severity  | Lokasi                                                                                         |
+| --- | --------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| 1   | **JWT Secret hardcoded** sebagai fallback di banyak file                          | 🔴 High   | middleware.ts, login, me, change-password, profile, users, registrations                       |
+| 2   | **Credential database & API key terekspos** di .env.local yang mungkin ter-commit | 🔴 High   | .env.local                                                                                     |
+| 3   | **Upload token hardcoded** di kode sumber                                         | 🔴 High   | [upload/route.ts:27](file:///d:/project/pendaftaran-perpus-batang/app/api/upload/route.ts#L27) |
+| 4   | **Admin default password** tertulis di constants.ts                               | 🟡 Medium | [constants.ts:3](file:///d:/project/pendaftaran-perpus-batang/lib/constants.ts#L3)             |
+| 5   | **No rate limiting** pada endpoint publik                                         | 🟡 Medium | Semua API routes                                                                               |
+| 6   | **No CSRF protection**                                                            | 🟡 Medium | Semua POST endpoints                                                                           |
+| 7   | **SQL injection risk rendah** — sudah menggunakan parameterized queries           | 🟢 Low    | Semua DB queries                                                                               |
 
 > [!WARNING]
 > **Code Quality Issues**
 
-| # | Issue | Lokasi |
-|---|-------|--------|
-| 1 | **Autofill testing button** masih ada di production | [RegistrationForm.tsx:43-54](file:///d:/project/pendaftaran-perpus-batang/app/components/RegistrationForm.tsx#L43-L54) |
-| 2 | **Banyak console.log debug** yang harus dihapus untuk production | registrations/route.ts (6+ log statements) |
-| 3 | **Duplikasi logika `getImageUrl()`** di 2 komponen | AdminDashboard.tsx & CekStatus.tsx |
-| 4 | **Duplikasi `jenisAnggotaMapping`** di 3 file | download-card, ActionModals, StatusCard |
-| 5 | **No database migration system** — menggunakan script manual | alter_table.mjs |
-| 6 | **`any` type** digunakan di banyak tempat | Hooks & API routes |
-| 7 | **Bridge URL hardcoded** langsung di registrations PATCH | [registrations/route.ts:128](file:///d:/project/pendaftaran-perpus-batang/app/api/registrations/route.ts#L128) |
+| #   | Issue                                                                                                                                                                                                                                                                                                                                                                                                                                | Lokasi                                                                                                                                                                                                                                                                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Autofill testing button** masih ada di production                                                                                                                                                                                                                                                                                                                                                                                  | [RegistrationForm.tsx:43-54](file:///d:/project/pendaftaran-perpus-batang/app/components/RegistrationForm.tsx#L43-L54)                                                                                                                                                                                                        |
+| 2   | **Banyak console.log debug** yang harus dihapus untuk production                                                                                                                                                                                                                                                                                                                                                                     | registrations/route.ts (6+ log statements)                                                                                                                                                                                                                                                                                    |
+| 3   | **Duplikasi logika `getImageUrl()`** di 2 komponen                                                                                                                                                                                                                                                                                                                                                                                   | AdminDashboard.tsx & CekStatus.tsx                                                                                                                                                                                                                                                                                            |
+| 4   | **Duplikasi `jenisAnggotaMapping`** di 3 file                                                                                                                                                                                                                                                                                                                                                                                        | download-card, ActionModals, StatusCard                                                                                                                                                                                                                                                                                       |
+| 5   | **No database migration system** — menggunakan script manual                                                                                                                                                                                                                                                                                                                                                                         | alter_table.mjs                                                                                                                                                                                                                                                                                                               |
+| 6   | **`any` type** digunakan di banyak tempat                                                                                                                                                                                                                                                                                                                                                                                            | Hooks & API routes                                                                                                                                                                                                                                                                                                            |
+| 7   | **Bridge URL hardcoded** langsung di registrations PATCH                                                                                                                                                                                                                                                                                                                                                                             | [registrations/route.ts:128](file:///d:/project/pendaftaran-perpus-batang/app/api/registrations/route.ts#L128)                                                                                                                                                                                                                |
+| 8   | **`bwip-js` import via ESM default** — pustaka ini mengekspor CJS, diimpor dengan `import bwipjs from 'bwip-js'`. Jika terjadi error runtime `toCanvas is not a function` atau `toBuffer is not a function` di lingkungan build tertentu, kemungkinan bundler gagal me-resolve default export. Solusi alternatif: gunakan `const bwipjs = require('bwip-js')` atau sesuaikan konfigurasi `next.config.ts` (`serverExternalPackages`) | [useStatusSearch.ts:2](file:///d:/project/pendaftaran-perpus-batang/hooks/useStatusSearch.ts#L2), [AdminDashboard.tsx:3](file:///d:/project/pendaftaran-perpus-batang/app/admin/components/AdminDashboard.tsx#L3), [download-card/route.ts:6](file:///d:/project/pendaftaran-perpus-batang/app/api/download-card/route.ts#L6) |
 
 ---
 
@@ -799,37 +806,37 @@ File-file yang paling sering memerlukan perubahan:
 
 ### 8.1 Istilah Domain Bisnis
 
-| Istilah | Penjelasan |
-|---------|-----------|
-| **Dispuspa** | Dinas Perpustakaan dan Kearsipan |
-| **INLIS Lite** | Integrated Library Information System — Sistem perpustakaan nasional Indonesia |
-| **PHP Bridge** | API perantara antara Next.js dan database lokal INLIS Lite di server Hostinger |
-| **Tiket / Ticket Number** | Nomor unik pendaftaran format `REG-2026-XXXXXX` |
-| **Member No / Nomor Anggota** | Nomor keanggotaan perpustakaan yang dihasilkan oleh INLIS Lite |
-| **Pas Foto** | Foto ukuran paspor (portrait) |
-| **Foto KTP** | Scan/foto kartu identitas (landscape) |
-| **Grha Pustaloka** | Nama gedung perpustakaan daerah Batang |
-| **Petugas** | Role admin level bawah (hanya bisa verifikasi pendaftaran) |
-| **Superadmin** | Role admin tertinggi (bisa kelola pengguna admin lainnya) |
-| **End Date** | Tanggal kadaluarsa kartu anggota (biasanya 3 tahun) |
+| Istilah                       | Penjelasan                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| **Dispuspa**                  | Dinas Perpustakaan dan Kearsipan                                               |
+| **INLIS Lite**                | Integrated Library Information System — Sistem perpustakaan nasional Indonesia |
+| **PHP Bridge**                | API perantara antara Next.js dan database lokal INLIS Lite di server Hostinger |
+| **Tiket / Ticket Number**     | Nomor unik pendaftaran format `REG-2026-XXXXXX`                                |
+| **Member No / Nomor Anggota** | Nomor keanggotaan perpustakaan yang dihasilkan oleh INLIS Lite                 |
+| **Pas Foto**                  | Foto ukuran paspor (portrait)                                                  |
+| **Foto KTP**                  | Scan/foto kartu identitas (landscape)                                          |
+| **Grha Pustaloka**            | Nama gedung perpustakaan daerah Batang                                         |
+| **Petugas**                   | Role admin level bawah (hanya bisa verifikasi pendaftaran)                     |
+| **Superadmin**                | Role admin tertinggi (bisa kelola pengguna admin lainnya)                      |
+| **End Date**                  | Tanggal kadaluarsa kartu anggota (biasanya 3 tahun)                            |
 
 ### 8.2 Konvensi Penamaan
 
-| Aspek | Konvensi | Contoh |
-|-------|---------|--------|
-| **File komponen** | PascalCase.tsx | `RegistrationForm.tsx`, `StatusCard.tsx` |
-| **File hooks** | camelCase dengan prefix `use` | `useRegistrationForm.ts` |
-| **File API route** | `route.ts` dalam folder bernama kebab-case | `app/api/download-card/route.ts` |
-| **Variabel TypeScript** | camelCase | `ticketNumber`, `isSubmitting` |
-| **Kolom database** | snake_case | `ticket_no`, `member_no`, `pas_foto_url` |
-| **Konstanta** | UPPER_SNAKE_CASE dalam objek | `FORM_CONFIG.TICKET_PREFIX` |
-| **CSS** | TailwindCSS utility classes | Inline di JSX |
-| **Brand colors** | Hex code konsisten | `#1e3a5f` (navy), `#c8a84b` (gold) |
+| Aspek                   | Konvensi                                   | Contoh                                   |
+| ----------------------- | ------------------------------------------ | ---------------------------------------- |
+| **File komponen**       | PascalCase.tsx                             | `RegistrationForm.tsx`, `StatusCard.tsx` |
+| **File hooks**          | camelCase dengan prefix `use`              | `useRegistrationForm.ts`                 |
+| **File API route**      | `route.ts` dalam folder bernama kebab-case | `app/api/download-card/route.ts`         |
+| **Variabel TypeScript** | camelCase                                  | `ticketNumber`, `isSubmitting`           |
+| **Kolom database**      | snake_case                                 | `ticket_no`, `member_no`, `pas_foto_url` |
+| **Konstanta**           | UPPER_SNAKE_CASE dalam objek               | `FORM_CONFIG.TICKET_PREFIX`              |
+| **CSS**                 | TailwindCSS utility classes                | Inline di JSX                            |
+| **Brand colors**        | Hex code konsisten                         | `#1e3a5f` (navy), `#c8a84b` (gold)       |
 
 ### 8.3 Pola Kode Konsisten
 
 1. **API Route Pattern**: Setiap `route.ts` mengekspor fungsi bernama sesuai HTTP method (`GET`, `POST`, `PATCH`, `PUT`, `DELETE`)
-2. **Error Handling**: Semua API route menggunakan `try/catch` dengan `NextResponse.json({ error }, { status })` 
+2. **Error Handling**: Semua API route menggunakan `try/catch` dengan `NextResponse.json({ error }, { status })`
 3. **Hook Pattern**: Setiap hook mengembalikan objek dengan state + handler functions
 4. **Form Validation**: Validasi client-side di hook (sebelum submit), tanpa validasi server-side yang memadai
 5. **Database Access**: Raw SQL queries via `pool.execute()` dengan parameterized queries (`?` placeholder)
@@ -944,14 +951,14 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 ### 10.1 Mekanisme Autentikasi
 
-| Aspek | Implementasi |
-|-------|-------------|
-| **Metode** | JWT (JSON Web Token) via library `jose` |
-| **Algoritma** | HS256 (HMAC-SHA256) |
-| **Storage** | HttpOnly Cookie (`admin_token`) |
-| **Expiry** | 1 hari (86400 detik) |
-| **Payload** | `{ id, email, role }` |
-| **Password hashing** | bcrypt (salt rounds: 10) |
+| Aspek                | Implementasi                            |
+| -------------------- | --------------------------------------- |
+| **Metode**           | JWT (JSON Web Token) via library `jose` |
+| **Algoritma**        | HS256 (HMAC-SHA256)                     |
+| **Storage**          | HttpOnly Cookie (`admin_token`)         |
+| **Expiry**           | 1 hari (86400 detik)                    |
+| **Payload**          | `{ id, email, role }`                   |
+| **Password hashing** | bcrypt (salt rounds: 10)                |
 
 ### 10.2 Otorisasi Role-Based
 
@@ -973,31 +980,32 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 ### 10.3 Validasi Input
 
-| Layer | Validasi | Lokasi |
-|-------|---------|--------|
-| **Client-side** | 22+ field wajib, regex email/phone, NIK 16 digit | [useRegistrationForm.ts:143-204](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts#L143-L204) |
-| **Server-side** | Validasi minimal (hanya cek email format di notify) | [notify/route.ts:14-21](file:///d:/project/pendaftaran-perpus-batang/app/api/notify/route.ts#L14-L21) |
+| Layer           | Validasi                                            | Lokasi                                                                                                                |
+| --------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Client-side** | 22+ field wajib, regex email/phone, NIK 16 digit    | [useRegistrationForm.ts:143-204](file:///d:/project/pendaftaran-perpus-batang/hooks/useRegistrationForm.ts#L143-L204) |
+| **Server-side** | Validasi minimal (hanya cek email format di notify) | [notify/route.ts:14-21](file:///d:/project/pendaftaran-perpus-batang/app/api/notify/route.ts#L14-L21)                 |
 
 ### 10.4 Middleware Keamanan
 
-| Middleware | Fungsi | Path |
-|-----------|--------|------|
-| JWT Verification | Cek token valid pada admin routes | `/admin/*`, `/api/admin/*`, `PATCH /api/registrations` |
-| Cookie Security | httpOnly, secure (prod), sameSite=strict | Login route |
-| CORS Proxy | Bypass CORS untuk image loading | `/api/proxy-image` |
+| Middleware       | Fungsi                                   | Path                                                   |
+| ---------------- | ---------------------------------------- | ------------------------------------------------------ |
+| JWT Verification | Cek token valid pada admin routes        | `/admin/*`, `/api/admin/*`, `PATCH /api/registrations` |
+| Cookie Security  | httpOnly, secure (prod), sameSite=strict | Login route                                            |
+| CORS Proxy       | Bypass CORS untuk image loading          | `/api/proxy-image`                                     |
 
 ### 10.5 Penanganan Secret/Credential
 
-| Secret | Status | Masalah |
-|--------|--------|---------|
-| JWT_SECRET | ⚠️ Hardcoded fallback | Fallback string muncul di 7 file |
-| BRIDGE_API_KEY | ⚠️ Tersimpan di .env.local & hardcoded fallback | [registrations:136](file:///d:/project/pendaftaran-perpus-batang/app/api/registrations/route.ts#L136) |
-| RESEND_API_KEY | ✅ Hanya di .env.local | Aman |
-| DB credentials | ⚠️ Plaintext di .env.local | File mungkin ter-commit |
-| Upload auth token | ⚠️ Hardcoded di source | [upload/route.ts:27](file:///d:/project/pendaftaran-perpus-batang/app/api/upload/route.ts#L27) |
+| Secret            | Status                                          | Masalah                                                                                               |
+| ----------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| JWT_SECRET        | ⚠️ Hardcoded fallback                           | Fallback string muncul di 7 file                                                                      |
+| BRIDGE_API_KEY    | ⚠️ Tersimpan di .env.local & hardcoded fallback | [registrations:136](file:///d:/project/pendaftaran-perpus-batang/app/api/registrations/route.ts#L136) |
+| RESEND_API_KEY    | ✅ Hanya di .env.local                          | Aman                                                                                                  |
+| DB credentials    | ⚠️ Plaintext di .env.local                      | File mungkin ter-commit                                                                               |
+| Upload auth token | ⚠️ Hardcoded di source                          | [upload/route.ts:27](file:///d:/project/pendaftaran-perpus-batang/app/api/upload/route.ts#L27)        |
 
 > [!CAUTION]
 > **Potensi Celah Keamanan Teridentifikasi:**
+>
 > 1. File `.env.local` mengandung secret production yang bisa bocor jika ter-commit
 > 2. JWT secret fallback identik di semua file — jika env var hilang, secret trivial digunakan
 > 3. Endpoint publik `POST /api/registrations` tidak ada rate limiting (risiko spam)
@@ -1017,12 +1025,12 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Cari data pendaftaran berdasarkan nomor tiket (untuk halaman cek status)
 
-| Aspek | Detail |
-|-------|--------|
-| **Query Params** | `ticket_no` (string, wajib) |
+| Aspek            | Detail                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Query Params** | `ticket_no` (string, wajib)                                                                                                    |
 | **Response 200** | `{ data: { ticket_no, fullname, status, created_at, approved_at, reject_reason, member_no, end_date, job_id, pas_foto_url } }` |
-| **Response 404** | `{ error: "Tidak ditemukan" }` |
-| **Response 500** | `{ error: "..." }` |
+| **Response 404** | `{ error: "Tidak ditemukan" }`                                                                                                 |
+| **Response 500** | `{ error: "..." }`                                                                                                             |
 
 ---
 
@@ -1030,12 +1038,12 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Simpan pendaftaran anggota baru
 
-| Aspek | Detail |
-|-------|--------|
-| **Content-Type** | `application/json` |
+| Aspek            | Detail                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Content-Type** | `application/json`                                                                                                                                                                                                                                                                                                                                          |
 | **Request Body** | `{ ticket_no, fullname, place_of_birth, date_of_birth, address, kecamatan, kelurahan, rt, rw, city, province, identity_type_id, identity_no, education_level_id, sex_id, marital_status_id, job_id, institution_name, mother_maiden_name, email, no_hp, phone, agama_id, nama_darurat, telp_darurat, status_hubungan_darurat, pas_foto_url, foto_ktp_url }` |
-| **Response 200** | `{ success: true, ticket_no: "REG-2026-XXXX" }` |
-| **Response 500** | `{ error: "..." }` |
+| **Response 200** | `{ success: true, ticket_no: "REG-2026-XXXX" }`                                                                                                                                                                                                                                                                                                             |
+| **Response 500** | `{ error: "..." }`                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -1043,13 +1051,13 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Upload file (pas foto atau foto KTP) ke Hostinger
 
-| Aspek | Detail |
-|-------|--------|
-| **Content-Type** | `multipart/form-data` |
-| **Form Fields** | `file` (File), `type` ("pas_foto" \| "foto_ktp"), `ticket_no` (string) |
-| **Response 200** | `{ success: true, url: "https://...", fileName: "..." }` |
-| **Response 400** | `{ error: "Data tidak lengkap" }` |
-| **Response 500** | `{ error: "..." }` |
+| Aspek            | Detail                                                                 |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Content-Type** | `multipart/form-data`                                                  |
+| **Form Fields**  | `file` (File), `type` ("pas_foto" \| "foto_ktp"), `ticket_no` (string) |
+| **Response 200** | `{ success: true, url: "https://...", fileName: "..." }`               |
+| **Response 400** | `{ error: "Data tidak lengkap" }`                                      |
+| **Response 500** | `{ error: "..." }`                                                     |
 
 ---
 
@@ -1057,11 +1065,11 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Kirim email notifikasi via Resend
 
-| Aspek | Detail |
-|-------|--------|
-| **Content-Type** | `application/json` |
-| **Request Body** | `{ type: "WELCOME_CONFIRMATION" | "STATUS_APPROVED" | "STATUS_REJECTED", email, fullname, ticketNumber, rejectReason? }` |
-| **Response 200** | `{ success: true, data: {...} }` |
+| Aspek            | Detail                                                                          |
+| ---------------- | ------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------ |
+| **Content-Type** | `application/json`                                                              |
+| **Request Body** | `{ type: "WELCOME_CONFIRMATION"                                                 | "STATUS_APPROVED" | "STATUS_REJECTED", email, fullname, ticketNumber, rejectReason? }` |
+| **Response 200** | `{ success: true, data: {...} }`                                                |
 | **Response 400** | `{ error: "Missing required fields" }` atau `{ error: "Invalid email format" }` |
 
 ---
@@ -1070,13 +1078,13 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Generate dan download kartu anggota perpustakaan dalam format PDF
 
-| Aspek | Detail |
-|-------|--------|
-| **Query Params** | `tiket` (string, wajib) |
+| Aspek            | Detail                                              |
+| ---------------- | --------------------------------------------------- |
+| **Query Params** | `tiket` (string, wajib)                             |
 | **Response 200** | Binary PDF stream (`Content-Type: application/pdf`) |
-| **Response 400** | `{ error: "Parameter tiket diperlukan" }` |
-| **Response 403** | `{ error: "Pendaftaran belum disetujui" }` |
-| **Response 404** | `{ error: "Data pendaftaran tidak ditemukan" }` |
+| **Response 400** | `{ error: "Parameter tiket diperlukan" }`           |
+| **Response 403** | `{ error: "Pendaftaran belum disetujui" }`          |
+| **Response 404** | `{ error: "Data pendaftaran tidak ditemukan" }`     |
 
 ---
 
@@ -1084,11 +1092,11 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 **Fungsi**: Proxy server-to-server untuk mengambil gambar (bypass CORS)
 
-| Aspek | Detail |
-|-------|--------|
-| **Query Params** | `url` (string, wajib — URL gambar target) |
+| Aspek            | Detail                                                      |
+| ---------------- | ----------------------------------------------------------- |
+| **Query Params** | `url` (string, wajib — URL gambar target)                   |
 | **Response 200** | Binary image data (Content-Type sesuai asli) + Cache 24 jam |
-| **Response 400** | `{ error: "Parameter URL diperlukan" }` |
+| **Response 400** | `{ error: "Parameter URL diperlukan" }`                     |
 
 ---
 
@@ -1098,43 +1106,43 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 #### `POST /api/auth/login`
 
-| Aspek | Detail |
-|-------|--------|
-| **Request Body** | `{ email, password }` |
+| Aspek            | Detail                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| **Request Body** | `{ email, password }`                                                                       |
 | **Response 200** | `{ message: "Login Berhasil", user: { id, name, email, role } }` + Set Cookie `admin_token` |
-| **Response 400** | `{ error: "Email dan Password wajib diisi" }` |
-| **Response 401** | `{ error: "Email atau Password salah" }` |
-| **Response 403** | `{ error: "Akun Anda dinonaktifkan." }` |
+| **Response 400** | `{ error: "Email dan Password wajib diisi" }`                                               |
+| **Response 401** | `{ error: "Email atau Password salah" }`                                                    |
+| **Response 403** | `{ error: "Akun Anda dinonaktifkan." }`                                                     |
 
 #### `GET /api/auth/me`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Cookie `admin_token` |
-| **Response 200** | `{ user: { id, email, role, iat, exp } }` (JWT payload) |
+| Aspek            | Detail                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| **Auth**         | Cookie `admin_token`                                                                       |
+| **Response 200** | `{ user: { id, email, role, iat, exp } }` (JWT payload)                                    |
 | **Response 401** | `{ error: "Tidak ada sesi aktif" }` atau `{ error: "Token tidak valid atau kedaluwarsa" }` |
 
 #### `POST /api/auth/logout`
 
-| Aspek | Detail |
-|-------|--------|
+| Aspek            | Detail                                          |
+| ---------------- | ----------------------------------------------- |
 | **Response 200** | `{ message: "Logout berhasil" }` + Clear Cookie |
 
 #### `POST /api/auth/change-password`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Cookie `admin_token` |
-| **Request Body** | `{ newPassword }` (min 6 karakter) |
+| Aspek            | Detail                                    |
+| ---------------- | ----------------------------------------- |
+| **Auth**         | Cookie `admin_token`                      |
+| **Request Body** | `{ newPassword }` (min 6 karakter)        |
 | **Response 200** | `{ message: "Password berhasil diubah" }` |
 
 #### `GET /api/auth/seed`
 
-| Aspek | Detail |
-|-------|--------|
-| **Guard** | Hanya jalan jika tabel admin_users kosong |
+| Aspek            | Detail                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| **Guard**        | Hanya jalan jika tabel admin_users kosong                                |
 | **Response 200** | `{ message: "Seeding berhasil. Akun superadmin pertama telah dibuat." }` |
-| **Response 400** | `{ message: "Tabel admin_users sudah berisi data." }` |
+| **Response 400** | `{ message: "Tabel admin_users sudah berisi data." }`                    |
 
 ---
 
@@ -1144,99 +1152,100 @@ PATCH /api/registrations { id, status: 'Disetujui' }
 
 #### `GET /api/registrations` (tanpa query param)
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Middleware JWT (untuk akses admin dashboard) |
+| Aspek            | Detail                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| **Auth**         | Middleware JWT (untuk akses admin dashboard)                             |
 | **Response 200** | `{ data: Registration[] }` — Semua pendaftaran, ORDER BY created_at DESC |
 
 #### `PATCH /api/registrations`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Middleware JWT |
-| **Request Body** | `{ id, status: "Disetujui" | "Ditolak", reject_reason? }` |
-| **Response 200** | `{ success: true, member_no?, message }` |
-| **Response 404** | `{ error: "Data pendaftaran tidak ditemukan" }` |
+| Aspek            | Detail                                               |
+| ---------------- | ---------------------------------------------------- | ---------------------------- |
+| **Auth**         | Middleware JWT                                       |
+| **Request Body** | `{ id, status: "Disetujui"                           | "Ditolak", reject_reason? }` |
+| **Response 200** | `{ success: true, member_no?, message }`             |
+| **Response 404** | `{ error: "Data pendaftaran tidak ditemukan" }`      |
 | **Response 422** | `{ error: "Gagal sinkronisasi data ke INLIS Lite" }` |
-| **Response 502** | `{ error: "PHP Bridge Error: ..." }` |
+| **Response 502** | `{ error: "PHP Bridge Error: ..." }`                 |
 
 ---
 
 #### `GET /api/admin/profile`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Middleware JWT |
+| Aspek            | Detail                                |
+| ---------------- | ------------------------------------- |
+| **Auth**         | Middleware JWT                        |
 | **Response 200** | `{ user: { id, name, email, role } }` |
 
 #### `PUT /api/admin/profile`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | Middleware JWT |
-| **Request Body** | `{ name, email, password? }` |
-| **Response 200** | `{ message: "Profil berhasil diperbarui" }` |
+| Aspek            | Detail                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| **Auth**         | Middleware JWT                                                                                         |
+| **Request Body** | `{ name, email, password? }`                                                                           |
+| **Response 200** | `{ message: "Profil berhasil diperbarui" }`                                                            |
 | **Response 400** | `{ error: "Nama dan Email wajib diisi" }` atau `{ error: "Email sudah terdaftar pada pengguna lain" }` |
 
 ---
 
 #### `GET /api/admin/users`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | JWT + role = superadmin |
+| Aspek            | Detail                                                                      |
+| ---------------- | --------------------------------------------------------------------------- |
+| **Auth**         | JWT + role = superadmin                                                     |
 | **Response 200** | `{ users: [{ id, name, email, role, is_active, last_login, created_at }] }` |
-| **Response 403** | `{ error: "Akses ditolak. Khusus Super Admin." }` |
+| **Response 403** | `{ error: "Akses ditolak. Khusus Super Admin." }`                           |
 
 #### `POST /api/admin/users`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | JWT + role = superadmin |
-| **Request Body** | `{ name, email, password, role }` |
-| **Response 200** | `{ message: "Akun baru berhasil dibuat" }` |
+| Aspek            | Detail                                        |
+| ---------------- | --------------------------------------------- |
+| **Auth**         | JWT + role = superadmin                       |
+| **Request Body** | `{ name, email, password, role }`             |
+| **Response 200** | `{ message: "Akun baru berhasil dibuat" }`    |
 | **Response 400** | `{ error: "Email/Username sudah digunakan" }` |
 
 #### `PUT /api/admin/users`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | JWT + role = superadmin |
+| Aspek            | Detail                                             |
+| ---------------- | -------------------------------------------------- |
+| **Auth**         | JWT + role = superadmin                            |
 | **Request Body** | `{ id, name, email, role, password?, is_active? }` |
 | **Response 200** | `{ message: "Data pengguna berhasil diperbarui" }` |
 
 #### `DELETE /api/admin/users?id={user_id}`
 
-| Aspek | Detail |
-|-------|--------|
-| **Auth** | JWT + role = superadmin |
-| **Query Params** | `id` (number) |
-| **Guard** | Tidak bisa hapus diri sendiri |
-| **Response 200** | `{ message: "Akun berhasil dihapus permanen" }` |
+| Aspek            | Detail                                                 |
+| ---------------- | ------------------------------------------------------ |
+| **Auth**         | JWT + role = superadmin                                |
+| **Query Params** | `id` (number)                                          |
+| **Guard**        | Tidak bisa hapus diri sendiri                          |
+| **Response 200** | `{ message: "Akun berhasil dihapus permanen" }`        |
 | **Response 400** | `{ error: "Anda tidak bisa menghapus akun sendiri!" }` |
 
 ### 11.4 Internal API Antar Modul
 
-| Caller | Target | Method | Tujuan |
-|--------|--------|--------|--------|
-| `useRegistrationForm` → | `/api/upload` | POST | Upload file sebelum simpan data |
-| `useRegistrationForm` → | `/api/registrations` | POST | Simpan data pendaftaran |
-| `useRegistrationForm` → | `/api/notify` | POST | Kirim email konfirmasi (fire-and-forget) |
-| `useRegistrations` → | `/api/registrations` | GET | Ambil semua data admin |
-| `useRegistrations` → | `/api/registrations` | PATCH | Approve/reject pendaftaran |
-| `useRegistrations` → | `/api/notify` | POST | Kirim email status (approved/rejected) |
-| `useStatusSearch` → | `/api/registrations?ticket_no=` | GET | Cari status pendaftaran |
-| `AdminDashboard` → | `/api/auth/me` | GET | Cek session admin aktif |
-| `AdminDashboard` → | `/api/auth/login` | POST | Login admin |
-| `AdminDashboard` → | `/api/auth/logout` | POST | Logout admin |
-| `StatusCard/ActionModals` → | `/api/proxy-image?url=` | GET | Proxy gambar untuk PDF |
-| `PATCH registrations` → | PHP Bridge (ext) | POST | Sinkron ke INLIS Lite |
-| `POST upload` → | Hostinger upload.php (ext) | POST | Simpan file |
+| Caller                      | Target                          | Method | Tujuan                                   |
+| --------------------------- | ------------------------------- | ------ | ---------------------------------------- |
+| `useRegistrationForm` →     | `/api/upload`                   | POST   | Upload file sebelum simpan data          |
+| `useRegistrationForm` →     | `/api/registrations`            | POST   | Simpan data pendaftaran                  |
+| `useRegistrationForm` →     | `/api/notify`                   | POST   | Kirim email konfirmasi (fire-and-forget) |
+| `useRegistrations` →        | `/api/registrations`            | GET    | Ambil semua data admin                   |
+| `useRegistrations` →        | `/api/registrations`            | PATCH  | Approve/reject pendaftaran               |
+| `useRegistrations` →        | `/api/notify`                   | POST   | Kirim email status (approved/rejected)   |
+| `useStatusSearch` →         | `/api/registrations?ticket_no=` | GET    | Cari status pendaftaran                  |
+| `AdminDashboard` →          | `/api/auth/me`                  | GET    | Cek session admin aktif                  |
+| `AdminDashboard` →          | `/api/auth/login`               | POST   | Login admin                              |
+| `AdminDashboard` →          | `/api/auth/logout`              | POST   | Logout admin                             |
+| `StatusCard/ActionModals` → | `/api/proxy-image?url=`         | GET    | Proxy gambar untuk PDF                   |
+| `PATCH registrations` →     | PHP Bridge (ext)                | POST   | Sinkron ke INLIS Lite                    |
+| `POST upload` →             | Hostinger upload.php (ext)      | POST   | Simpan file                              |
 
 ---
 
 > [!TIP]
 > **Quick Start untuk Developer Baru:**
+>
 > 1. Baca file [types/index.ts](file:///d:/project/pendaftaran-perpus-batang/types/index.ts) untuk memahami struktur data
 > 2. Baca file [middleware.ts](file:///d:/project/pendaftaran-perpus-batang/middleware.ts) untuk memahami proteksi route
 > 3. Baca file [app/api/registrations/route.ts](file:///d:/project/pendaftaran-perpus-batang/app/api/registrations/route.ts) — ini adalah jantung seluruh sistem
