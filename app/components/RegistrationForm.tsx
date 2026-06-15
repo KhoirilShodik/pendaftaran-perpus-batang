@@ -41,7 +41,7 @@ export default function RegistrationForm() {
       <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-10">
         
         {/* 🟢 PERBAIKAN TOTAL: Tombol ditaruh di dalam baris flex khusus, anti-ngumpet */}
-        <div className=" flex justify-end w-full mb-2 border-b border-gray-100 pb-4">
+        <div className=" hidden flex justify-end w-full mb-2 border-b border-gray-100 pb-4">
           <button
             type="button"
             onClick={handleAutofill}
