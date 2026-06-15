@@ -140,12 +140,11 @@ export function StatusCard({ result, barcodeData, formatDate }: StatusCardProps)
                             fullname: result.fullname || '',
                             memberNo: result.memberNo || result.ticketNumber || '',
                             jenisAnggota: (() => {
-                              const jenisAnggotaMapping: Record<string, string> = {
-                                '1': 'PELAJAR',
-                                '2': 'UMUM',
-                                '13': 'UMUM',
-                              };
-                              return jenisAnggotaMapping[String(result.jobId)] || 'UMUM';
+                              const jobId = Number(result.jobId);
+                              if (jobId === 1 || jobId === 2) return 'PNS/TNI/POLRI';
+                              if (jobId === 5) return 'PELAJAR';
+                              if (jobId === 6) return 'MAHASISWA';
+                              return 'UMUM';
                             })(),
                             endDate: result.endDate 
                               ? (() => {

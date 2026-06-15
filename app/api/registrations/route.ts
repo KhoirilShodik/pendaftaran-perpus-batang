@@ -134,6 +134,17 @@ export async function PATCH(req: NextRequest) {
         }
       }
 
+      // Tentukan jenis_anggota_id berdasarkan job_id untuk database INLIS Lite lokal
+      let jenisAnggotaId = 2; // Default: Umum (ID 2)
+      const jobId = Number(reg.job_id);
+      if (jobId === 1 || jobId === 2) {
+        jenisAnggotaId = 15; // PNS/TNI/POLRI
+      } else if (jobId === 5) {
+        jenisAnggotaId = 13; // Pelajar
+      } else if (jobId === 6) {
+        jenisAnggotaId = 12; // Mahasiswa
+      }
+
       // Payload diselaraskan murni dengan kebutuhan penamaan parameter bridge & tabel registrations
       const bridgePayload = {
         fullname: reg.fullname,
@@ -155,7 +166,7 @@ export async function PATCH(req: NextRequest) {
         status_hubungan_darurat: reg.status_hubungan_darurat,
         institution_name: reg.institution_name,
         photo_url: reg.pas_foto_url,
-        jenis_anggota_id: Number(reg.job_id) === 1 ? 1 : 13,
+        jenis_anggota_id: jenisAnggotaId,
         identity_type_id: reg.identity_type_id || 1,
         education_level_id: reg.education_level_id || 1,
         sex_id: reg.sex_id || 1,

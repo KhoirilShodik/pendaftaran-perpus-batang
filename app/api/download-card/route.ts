@@ -78,12 +78,15 @@ export async function GET(request: Request) {
       formattedEndDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
     }
 
-    const jenisAnggotaMapping: Record<string, string> = {
-      '1': 'PELAJAR',
-      '2': 'UMUM',
-      '13': 'UMUM',
-    };
-    const jenisAnggotaText = jenisAnggotaMapping[String(reg.jenis_anggota_id || reg.job_id)] || 'UMUM';
+    const jobId = Number(reg.job_id);
+    let jenisAnggotaText = 'UMUM';
+    if (jobId === 1 || jobId === 2) {
+      jenisAnggotaText = 'PNS/TNI/POLRI';
+    } else if (jobId === 5) {
+      jenisAnggotaText = 'PELAJAR';
+    } else if (jobId === 6) {
+      jenisAnggotaText = 'MAHASISWA';
+    }
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || STATUS_CONFIG.SITE_URL_FALLBACK;
     let pasFotoBase64: string | null = null;
