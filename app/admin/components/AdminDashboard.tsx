@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import bwipjs from 'bwip-js'
-import { 
-  RefreshCw, LogOut, ShieldAlert, KeyRound, 
+import {
+  RefreshCw, LogOut, ShieldAlert, KeyRound,
   Loader2, Save, X, BookOpen, Eye, EyeOff, Settings, LayoutDashboard, Users
 } from 'lucide-react'
 
@@ -17,12 +17,12 @@ import { UserManagement } from './UserManagement'
 import { ProfileSettings } from './ProfileSettings'
 
 export default function AdminDashboard() {
-  const { 
-    registrations, 
-    isLoadingData, 
-    fetchError, 
-    fetchRegistrations, 
-    handleApprove, 
+  const {
+    registrations,
+    isLoadingData,
+    fetchError,
+    fetchRegistrations,
+    handleApprove,
     handleReject,
     selectedReg,
     setSelectedReg,
@@ -44,11 +44,11 @@ export default function AdminDashboard() {
 
   // Password / Login UI States
   const [showLoginPass, setShowLoginPass] = useState(false)
-  
-  const [activeFilter, setActiveFilter] = useState<'Semua'|RegistrationStatus>('Semua')
+
+  const [activeFilter, setActiveFilter] = useState<'Semua' | RegistrationStatus>('Semua')
   const [searchQuery, setSearchQuery] = useState('')
   const [toast, setToast] = useState('')
-const [barcodeData, setBarcodeData] = useState<string>('')
+  const [barcodeData, setBarcodeData] = useState<string>('')
   // Check Session on Mount
   useEffect(() => {
     const checkSession = async () => {
@@ -79,35 +79,35 @@ const [barcodeData, setBarcodeData] = useState<string>('')
   }, [isLoggedIn, fetchRegistrations])
 
   useEffect(() => {
-  if (selectedReg && selectedReg.status === 'Disetujui') {
-    // Reset barcode saat pendaftar baru dipilih agar tidak menampilkan data lama
-    setBarcodeData(''); 
+    if (selectedReg && selectedReg.status === 'Disetujui') {
+      // Reset barcode saat pendaftar baru dipilih agar tidak menampilkan data lama
+      setBarcodeData('');
 
-    // Guard: pastikan kode hanya berjalan di browser (bukan SSR)
-    if (typeof document === 'undefined') return
+      // Guard: pastikan kode hanya berjalan di browser (bukan SSR)
+      if (typeof document === 'undefined') return
 
-    try {
-      // Buat elemen canvas offscreen untuk bwip-js v4.x
-      const canvas = document.createElement('canvas')
+      try {
+        // Buat elemen canvas offscreen untuk bwip-js v4.x
+        const canvas = document.createElement('canvas')
 
-      // Menggunakan bwip-js toCanvas() (API yang tersedia di browser pada v4.x)
-      bwipjs.toCanvas(canvas, {
-        bcid: 'code128',
-        text: selectedReg.ticketNumber, 
-        scale: 3,
-        height: 10,
-        includetext: true,
-        textxalign: 'center',
-      })
+        // Menggunakan bwip-js toCanvas() (API yang tersedia di browser pada v4.x)
+        bwipjs.toCanvas(canvas, {
+          bcid: 'code128',
+          text: selectedReg.ticketNumber,
+          scale: 3,
+          height: 10,
+          includetext: true,
+          textxalign: 'center',
+        })
 
-      // Konversi canvas ke Data URL menggunakan native browser API
-      const dataUrl = canvas.toDataURL('image/png')
-      setBarcodeData(dataUrl)
-    } catch (err) {
-      console.error("Barcode Error:", err)
+        // Konversi canvas ke Data URL menggunakan native browser API
+        const dataUrl = canvas.toDataURL('image/png')
+        setBarcodeData(dataUrl)
+      } catch (err) {
+        console.error("Barcode Error:", err)
+      }
     }
-  }
-}, [selectedReg]);
+  }, [selectedReg]);
 
   const handleLogin = async () => {
     if (!loginEmail || !loginPass) {
@@ -126,7 +126,7 @@ const [barcodeData, setBarcodeData] = useState<string>('')
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal login');
-      
+
       setUserRole(data.user.role);
       setActiveTab('dashboard');
       setIsLoggedIn(true);
@@ -156,10 +156,10 @@ const [barcodeData, setBarcodeData] = useState<string>('')
     try {
       await handleApprove(reg)
       showToast('✅ Pendaftaran berhasil disetujui!')
-      
+
       // Mengambil ulang data dari DB agar kolom member_no yang terisi oleh PHP Bridge langsung sinkron ke UI
       await fetchRegistrations()
-      
+
       // Otomatis tutup detail modal lama agar jika dibuka kembali datanya sudah ter-update
       setSelectedReg(null)
     } catch (err: any) {
@@ -173,10 +173,10 @@ const [barcodeData, setBarcodeData] = useState<string>('')
     try {
       await handleReject(selectedReg, rejectReason)
       showToast('✅ Pendaftaran telah ditolak.')
-      
+
       // Tarik ulang daftar database terbaru untuk menyegarkan baris list table
       await fetchRegistrations()
-      
+
       // Reset state form reject
       setSelectedReg(null)
       setShowRejectForm(false)
@@ -193,11 +193,11 @@ const [barcodeData, setBarcodeData] = useState<string>('')
     return matchFilter && matchSearch
   }), [registrations, activeFilter, searchQuery])
 
-  const counts = useMemo(() => ({ 
-    total: registrations.length, 
-    menunggu: registrations.filter(r=>r.status==='Menunggu').length, 
-    disetujui: registrations.filter(r=>r.status==='Disetujui').length, 
-    ditolak: registrations.filter(r=>r.status==='Ditolak').length 
+  const counts = useMemo(() => ({
+    total: registrations.length,
+    menunggu: registrations.filter(r => r.status === 'Menunggu').length,
+    disetujui: registrations.filter(r => r.status === 'Disetujui').length,
+    ditolak: registrations.filter(r => r.status === 'Ditolak').length
   }), [registrations])
 
   const getImageUrl = (path: string) => {
@@ -224,9 +224,9 @@ const [barcodeData, setBarcodeData] = useState<string>('')
             <BookOpen className="text-[#c8a84b] -rotate-3 group-hover:rotate-0 transition-transform duration-500" size={40} />
           </div>
           <h1 className="font-extrabold text-2xl text-[#1e3a5f] tracking-tight uppercase">Portal Admin</h1>
-          <p className="text-[10px] font-bold text-[#c8a84b] uppercase tracking-[0.2em] mt-1">Dispuspa Kabupaten Batang</p>
+          <p className="text-[10px] font-bold text-[#c8a84b] uppercase tracking-[0.2em] mt-1">Disperpuska Kabupaten Batang</p>
         </div>
-        
+
         {loginError && (
           <div className="bg-rose-50 text-rose-600 text-xs p-4 rounded-2xl mb-6 border border-rose-100 flex items-center gap-3 animate-in slide-in-from-top-2">
             <div className="w-1 h-1 bg-rose-600 rounded-full shrink-0" />
@@ -237,11 +237,11 @@ const [barcodeData, setBarcodeData] = useState<string>('')
         <div className="space-y-5">
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Admin</label>
-            <input 
-              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
-              value={loginEmail} 
-              onChange={e=>setLoginEmail(e.target.value)} 
-              onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
+            <input
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all"
+              value={loginEmail}
+              onChange={e => setLoginEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
               placeholder="admin@batangkab.go.id"
               type="email"
             />
@@ -249,12 +249,12 @@ const [barcodeData, setBarcodeData] = useState<string>('')
           <div>
             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
             <div className="relative group/pass">
-              <input 
-                type={showLoginPass ? "text" : "password"} 
-                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 pr-12 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all" 
-                value={loginPass} 
-                onChange={e=>setLoginPass(e.target.value)} 
-                onKeyDown={e=>e.key==='Enter'&&handleLogin()} 
+              <input
+                type={showLoginPass ? "text" : "password"}
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl px-5 py-3.5 pr-12 text-sm focus:bg-white focus:border-[#1e3a5f]/10 outline-none transition-all"
+                value={loginPass}
+                onChange={e => setLoginPass(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="••••••••"
               />
               <button
@@ -266,8 +266,8 @@ const [barcodeData, setBarcodeData] = useState<string>('')
               </button>
             </div>
           </div>
-          <button 
-            onClick={handleLogin} 
+          <button
+            onClick={handleLogin}
             disabled={isLoggingIn}
             className="w-full py-4 bg-[#1e3a5f] rounded-2xl text-white font-bold text-sm transition-all hover:bg-[#1e3a5f]/90 active:scale-95 shadow-lg shadow-blue-900/20 mt-4 flex items-center justify-center gap-2"
           >
@@ -292,13 +292,13 @@ const [barcodeData, setBarcodeData] = useState<string>('')
             </div>
             <div>
               <h1 className="text-xl font-black text-[#1e3a5f] leading-none tracking-tight">DASHBOARD <span className="text-[#c8a84b]">ADMIN</span></h1>
-              <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-[0.2em] mt-1">Dispuspa Kab. Batang</p>
+              <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-[0.2em] mt-1">Disperpuska Kab. Batang</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 md:gap-3">
             {activeTab !== 'dashboard' && (
-              <button 
+              <button
                 onClick={() => setActiveTab('dashboard')}
                 className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all active:scale-95 text-blue-900 flex items-center gap-2 px-3 md:px-4"
                 title="Kembali ke Dashboard"
@@ -308,7 +308,7 @@ const [barcodeData, setBarcodeData] = useState<string>('')
               </button>
             )}
             {userRole === 'superadmin' && activeTab !== 'pengguna' && (
-              <button 
+              <button
                 onClick={() => setActiveTab('pengguna')}
                 className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all active:scale-95 text-blue-900 flex items-center gap-2 px-3 md:px-4"
                 title="Manajemen Pengguna"
@@ -318,7 +318,7 @@ const [barcodeData, setBarcodeData] = useState<string>('')
               </button>
             )}
             {userRole === 'petugas' && activeTab !== 'profil' && (
-              <button 
+              <button
                 onClick={() => setActiveTab('profil')}
                 className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all active:scale-95 text-blue-900 flex items-center gap-2 px-3 md:px-4"
                 title="Pengaturan Profil"
@@ -327,15 +327,15 @@ const [barcodeData, setBarcodeData] = useState<string>('')
                 <span className="text-xs font-bold md:block hidden">Profil</span>
               </button>
             )}
-            <button 
-              onClick={fetchRegistrations} 
+            <button
+              onClick={fetchRegistrations}
               className="p-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all active:scale-95 text-gray-500 flex items-center gap-2 px-3 md:px-4"
             >
               <RefreshCw size={16} className={isLoadingData ? 'animate-spin' : ''} />
               <span className="text-xs font-bold md:block hidden">Refresh</span>
             </button>
-            <button 
-              onClick={handleLogout} 
+            <button
+              onClick={handleLogout}
               className="p-2.5 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all active:scale-95 text-rose-600 flex items-center gap-2 px-3 md:px-4"
             >
               <LogOut size={16} />
@@ -358,7 +358,7 @@ const [barcodeData, setBarcodeData] = useState<string>('')
                 <p className="font-bold tracking-widest text-xs uppercase">Menyiapkan Data...</p>
               </div>
             )}
-            
+
             {fetchError && (
               <div className="bg-rose-50 border border-rose-100 rounded-3xl p-5 mb-8 text-rose-600 text-sm flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
                 <ShieldAlert size={24} />
@@ -372,7 +372,7 @@ const [barcodeData, setBarcodeData] = useState<string>('')
 
             <StatsOverview counts={counts} />
 
-            <RegistrationTable 
+            <RegistrationTable
               registrations={filtered}
               activeFilter={activeFilter}
               setActiveFilter={setActiveFilter}
@@ -384,20 +384,20 @@ const [barcodeData, setBarcodeData] = useState<string>('')
               }}
             />
 
-            <ActionModals 
+            <ActionModals
               selectedReg={selectedReg}
               onClose={() => {
                 setSelectedReg(null)
                 setShowRejectForm(false)
               }}
-                onApprove={onApprove}
-                onReject={onReject}
-                barcodeData={barcodeData}
-                getImageUrl={getImageUrl}
-                showRejectForm={showRejectForm}
-                setShowRejectForm={setShowRejectForm}
-                rejectReason={rejectReason}
-                setRejectReason={setRejectReason}
+              onApprove={onApprove}
+              onReject={onReject}
+              barcodeData={barcodeData}
+              getImageUrl={getImageUrl}
+              showRejectForm={showRejectForm}
+              setShowRejectForm={setShowRejectForm}
+              rejectReason={rejectReason}
+              setRejectReason={setRejectReason}
             />
           </>
         )}
