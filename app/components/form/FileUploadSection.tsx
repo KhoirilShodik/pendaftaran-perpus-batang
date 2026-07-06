@@ -114,8 +114,8 @@ function CameraModal({ type, onCapture, onClose }: CameraModalProps) {
         <div className={`px-5 py-2.5 text-xs font-medium flex items-center gap-2 ${isKtp ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
           <ZoomIn size={14} />
           {isKtp
-            ? '💡 Tips: Pegang KTP horizontal, pastikan semua teks NIK & nama terbaca jelas'
-            : '💡 Tips: Foto tampak depan, ekspresi natural, latar belakang polos & cerah'
+            ? '💡 Tips: Pegang KTP horizontal Posisi HP Tetap Vertikal, pastikan semua teks NIK & nama terbaca jelas'
+            : '💡 Tips: Foto tampak depan, latar belakang Disaran kan Warna Merah'
           }
         </div>
 
@@ -195,16 +195,15 @@ export function FileUploadSection({
         </div>
         <h3 className="text-xl font-bold text-[#1e3a5f]">Upload Dokumen</h3>
       </div>
-      
+
       <p className="text-sm text-gray-400 font-medium mb-8">Format JPG/PNG, ukuran maksimal 2MB per file.</p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Pas Foto */}
         <div>
-          <label className={labelClass}>Pas Foto (Formal) <span className="text-rose-500 font-bold">*</span> <span className="text-[9px] text-blue-400 font-medium ml-1 normal-case tracking-normal">(Vertikal - tampak depan)</span></label>
-          <div className={`group relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-[2rem] transition-all duration-300 ${
-            errors.pasFoto ? 'border-rose-300 bg-rose-50' : 'border-gray-100 bg-gray-50 hover:border-[#1e3a5f] hover:bg-white hover:shadow-xl hover:shadow-blue-900/5'
-          }`}>
+          <label className={labelClass}>Pas Foto (Formal) <span className="text-rose-500 font-bold">*</span> <span className="text-[9px] text-blue-400 font-medium ml-1 normal-case tracking-normal">(VERTIKAL - TAMPAK DEPAN SERTA BACKGROUND WARNA MERAH)</span></label>
+          <div className={`group relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-[2rem] transition-all duration-300 ${errors.pasFoto ? 'border-rose-300 bg-rose-50' : 'border-gray-100 bg-gray-50 hover:border-[#1e3a5f] hover:bg-white hover:shadow-xl hover:shadow-blue-900/5'
+            }`}>
             {pasFotoPreview ? (
               <div className="relative group/preview">
                 <div className="w-32 h-44 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
@@ -222,7 +221,7 @@ export function FileUploadSection({
                 <p className="text-xs font-bold text-gray-400 group-hover:text-gray-500">Belum ada file</p>
               </div>
             )}
-            
+
             <div className="mt-6 flex items-center gap-2">
               <label htmlFor="pasFoto" className="cursor-pointer bg-white border border-gray-100 px-4 py-2.5 rounded-xl text-xs font-extrabold text-[#1e3a5f] shadow-sm hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5">
                 <UploadCloud size={14} />
@@ -244,10 +243,9 @@ export function FileUploadSection({
 
         {/* Foto KTP */}
         <div>
-          <label className={labelClass}>Foto Identitas (KTP/KIA) <span className="text-rose-500 font-bold">*</span> <span className="text-[9px] text-blue-400 font-medium ml-1 normal-case tracking-normal">(Horizontal - semua teks terbaca)</span></label>
-          <div className={`group relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-[2rem] transition-all duration-300 ${
-            errors.fotoKtp ? 'border-rose-300 bg-rose-50' : 'border-gray-100 bg-gray-50 hover:border-[#1e3a5f] hover:bg-white hover:shadow-xl hover:shadow-blue-900/5'
-          }`}>
+          <label className={labelClass}>Foto Identitas (KTP/KIA) <span className="text-rose-500 font-bold">*</span> <span className="text-[9px] text-blue-400 font-medium ml-1 normal-case tracking-normal">(POSISI KTP/DLL HORIZONTAL - SEMUA TEKS TERBACA - POSISI HP TETAP VERTIKAL)</span></label>
+          <div className={`group relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-[2rem] transition-all duration-300 ${errors.fotoKtp ? 'border-rose-300 bg-rose-50' : 'border-gray-100 bg-gray-50 hover:border-[#1e3a5f] hover:bg-white hover:shadow-xl hover:shadow-blue-900/5'
+            }`}>
             {fotoKtpPreview ? (
               <div className="relative group/preview w-full max-w-[240px]">
                 <div className="w-full h-36 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
@@ -265,7 +263,7 @@ export function FileUploadSection({
                 <p className="text-xs font-bold text-gray-400 group-hover:text-gray-500">Belum ada file</p>
               </div>
             )}
-            
+
             <div className="mt-6 flex items-center gap-2">
               <label htmlFor="fotoKtp" className="cursor-pointer bg-white border border-gray-100 px-4 py-2.5 rounded-xl text-xs font-extrabold text-[#1e3a5f] shadow-sm hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5">
                 <UploadCloud size={14} />
