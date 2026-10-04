@@ -1,8 +1,10 @@
 'use client'
-import React from 'react'
-import { Search, Eye, ListFilter } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Search, Eye, ListFilter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Registration, RegistrationStatus } from '@/types'
 import { StatusBadge } from '@/app/components/ui/StatusBadge'
+
+const ITEMS_PER_PAGE = 20
 
 interface RegistrationTableProps {
   registrations: Registration[]
@@ -21,6 +23,17 @@ export function RegistrationTable({
   setSearchQuery,
   onSelect
 }: RegistrationTableProps) {
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // Reset ke halaman 1 setiap kali data berubah (akibat filter atau pencarian)
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [registrations])
+
+  const totalPages = Math.ceil(registrations.length / ITEMS_PER_PAGE)
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE
+  const paginated = registrations.slice(startIdx, startIdx + ITEMS_PER_PAGE)
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/50 backdrop-blur-sm">
@@ -62,10 +75,10 @@ export function RegistrationTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-sm">
-            {registrations.length > 0 ? (
-              registrations.map((reg, idx) => (
+            {paginated.length > 0 ? (
+              paginated.map((reg, idx) => (
                 <tr key={reg.id} className="hover:bg-blue-50/40 transition-colors duration-150 group">
-                  <td className="px-6 py-4 text-gray-300 font-mono text-xs">{idx + 1}</td>
+                  <td className="px-6 py-4 text-gray-300 font-mono text-xs">{startIdx + idx + 1}</td>
                   
                   {/* 🟢 TIKET: Dijamin 100% aman menampilkan string REG-XXXXX asli */}
                   <td className="px-6 py-4 font-bold text-blue-900 tracking-tight">{reg.ticketNumber}</td>
@@ -110,6 +123,69 @@ export function RegistrationTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-50/50">
+          <p className="text-xs text-gray-400 font-medium">
+            Menampilkan{' '}
+            <span className="font-bold text-gray-600">{startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, registrations.length)}</span>
+            {' '}dari{' '}
+            <span className="font-bold text-gray-600">{registrations.length}</span>
+            {' '}data
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+            >
+              <ChevronLeft size={14} /> Sebelumnya
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) =>
+                  page === 1 ||
+                  page === totalPages ||
+                  Math.abs(page - currentPage) <= 1
+                )
+                .reduce<(number | '...')[]>((acc, page, i, arr) => {
+                  if (i > 0 && typeof arr[i - 1] === 'number' && (page as number) - (arr[i - 1] as number) > 1) {
+                    acc.push('...')
+                  }
+                  acc.push(page)
+                  return acc
+                }, [])
+                .map((item, i) =>
+                  item === '...' ? (
+                    <span key={`ellipsis-${i}`} className="px-2 text-gray-400 text-xs font-bold">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setCurrentPage(item as number)}
+                      className={`w-8 h-8 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+                        currentPage === item
+                          ? 'bg-[#1e3a5f] text-white shadow-md shadow-blue-900/20'
+                          : 'bg-white border border-gray-200 text-gray-500 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-900'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+            >
+              Selanjutnya <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
