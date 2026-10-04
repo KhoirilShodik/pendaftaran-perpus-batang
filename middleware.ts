@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       await jwtVerify(token, secret);
     } catch (err) {
       const response = NextResponse.redirect(new URL('/admin', request.url));
@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       await jwtVerify(token, secret);
     } catch (err) {
       return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });

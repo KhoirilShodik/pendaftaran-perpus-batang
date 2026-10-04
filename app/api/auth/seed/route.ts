@@ -1,3 +1,4 @@
+/*
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import bcrypt from 'bcryptjs';
@@ -27,3 +28,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Gagal melakukan seeding', details: error.message }, { status: 500 });
   }
 }
+*/

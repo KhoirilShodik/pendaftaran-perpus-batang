@@ -101,7 +101,7 @@ export async function PATCH(req: NextRequest) {
     if (token) {
       try {
         const { jwtVerify } = await import('jose');
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const { payload } = await jwtVerify(token, secret);
         adminIdentity = (payload.email as string) || (payload.username as string) || adminIdentity;
       } catch (e) {

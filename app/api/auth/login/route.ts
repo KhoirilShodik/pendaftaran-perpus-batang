@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         await pool.execute('UPDATE admin_users SET last_login = NOW() WHERE id = ?', [user.id]);
 
         // 5. Buat Token JWT
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_jwt_key_dispuspa_batang_2026_xyz123');
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const token = await new SignJWT({ id: user.id, email: user.email, role: user.role })
             .setProtectedHeader({ alg: 'HS256' })
             .setExpirationTime('1d')
